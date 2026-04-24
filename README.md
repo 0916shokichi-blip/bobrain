@@ -72,8 +72,8 @@ Then from Claude / Cursor / Claude Desktop you can call the `search_docs` tool d
 
 ## Roadmap
 
-- [ ] Upgrade embeddings to `multilingual-e5-large` / BGE-M3 (currently MiniLM-L12 for spike speed)
-- [ ] Japanese-aware BM25 via MeCab (fugashi + unidic-lite)
+- [x] Japanese-aware BM25 via MeCab (fugashi + unidic-lite)
+- [x] Upgrade embeddings to `multilingual-e5-large` (query/passage prefix aware)
 - [ ] Source-type-aware chunkers (Markdown heading-aware, code AST-aware via tree-sitter, PDF layout-aware via pymupdf)
 - [ ] Incremental indexing with `watchdog`
 - [ ] LLM Wiki auto-detection (directories containing `CLAUDE.md + log.md + index.md`)

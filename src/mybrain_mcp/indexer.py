@@ -13,8 +13,8 @@ from fastembed import TextEmbedding
 from fugashi import Tagger
 from rank_bm25 import BM25Okapi
 
-MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-VECTOR_DIM = 384
+MODEL_NAME = "intfloat/multilingual-e5-large"
+VECTOR_DIM = 1024
 TABLE_NAME = "chunks"
 
 _NOISE_POS = {"助詞", "助動詞", "補助記号", "空白", "記号"}
@@ -83,8 +83,9 @@ def build_chunks(root: Path, namespace: str) -> list[Chunk]:
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
+    """Embed documents for indexing. Uses passage_embed so e5 prefixes are applied."""
     model = TextEmbedding(model_name=MODEL_NAME)
-    return [list(map(float, v)) for v in model.embed(texts)]
+    return [list(map(float, v)) for v in model.passage_embed(texts)]
 
 
 def tokenize(text: str) -> list[str]:

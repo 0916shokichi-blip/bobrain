@@ -26,7 +26,7 @@ def search(
     namespaces: list[str] | None = None,
 ) -> list[dict]:
     model = TextEmbedding(model_name=MODEL_NAME)
-    q_vec = [float(x) for x in next(iter(model.embed([query])))]
+    q_vec = [float(x) for x in next(iter(model.query_embed([query])))]
 
     db = lancedb.connect(str(data_dir / "lancedb"))
     table = db.open_table(TABLE_NAME)
