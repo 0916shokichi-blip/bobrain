@@ -43,6 +43,20 @@ def search(
 
 
 @app.command()
+def watch(
+    path: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
+    namespace: str = typer.Option("default", "--namespace", "-n"),
+    data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="MYBRAIN_DATA"),
+    debounce_ms: int = typer.Option(500, "--debounce-ms"),
+) -> None:
+    """Keep the index in sync with `path` (Ctrl+C to stop)."""
+    from .watcher import watch as do_watch
+
+    typer.echo(f"watching {path} (ns='{namespace}', debounce={debounce_ms}ms) — Ctrl+C to stop")
+    do_watch(path, namespace, data_dir, debounce_ms=debounce_ms)
+
+
+@app.command()
 def serve() -> None:
     from .server import main as serve_main
 

@@ -150,11 +150,17 @@ def _rebuild_bm25(table, data_dir: Path) -> None:
         )
 
 
+def _table_exists(db, name: str) -> bool:
+    # LanceDB >= 0.30 returns a ListTablesResponse(tables=[...]) wrapper,
+    # so `name in db.list_tables()` is always False. Use `.tables`.
+    return name in db.list_tables().tables
+
+
 def _upsert_rows(data_dir: Path, where: str, rows: list[dict]):
     """Delete existing rows matching `where`, then insert `rows`. Returns the table."""
     data_dir.mkdir(parents=True, exist_ok=True)
     db = lancedb.connect(str(data_dir / "lancedb"))
-    if TABLE_NAME in db.list_tables():
+    if _table_exists(db, TABLE_NAME):
         table = db.open_table(TABLE_NAME)
         table.delete(where)
         if rows:
@@ -203,7 +209,7 @@ def reindex_file(file_path: Path, namespace: str, data_dir: Path) -> int:
 def remove_file(file_path: Path, data_dir: Path) -> None:
     """Drop all chunks for a deleted file and rebuild the BM25 pickle."""
     db = lancedb.connect(str(data_dir / "lancedb"))
-    if TABLE_NAME not in db.list_tables():
+    if not _table_exists(db, TABLE_NAME):
         return
     table = db.open_table(TABLE_NAME)
     table.delete(f"path = '{_escape_sql(str(file_path))}'")
