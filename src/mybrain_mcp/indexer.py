@@ -10,11 +10,22 @@ from typing import Iterable
 
 import lancedb
 from fastembed import TextEmbedding
+from fugashi import Tagger
 from rank_bm25 import BM25Okapi
 
 MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 VECTOR_DIM = 384
 TABLE_NAME = "chunks"
+
+_NOISE_POS = {"助詞", "助動詞", "補助記号", "空白", "記号"}
+_tagger: Tagger | None = None
+
+
+def _get_tagger() -> Tagger:
+    global _tagger
+    if _tagger is None:
+        _tagger = Tagger()
+    return _tagger
 
 
 @dataclass
@@ -77,7 +88,17 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
 
 
 def tokenize(text: str) -> list[str]:
-    return re.findall(r"\w+", text.lower())
+    tagger = _get_tagger()
+    tokens: list[str] = []
+    for w in tagger(text):
+        if w.feature.pos1 in _NOISE_POS:
+            continue
+        lemma = getattr(w.feature, "lemma", None) or w.surface
+        lemma = lemma.split("-", 1)[0]
+        token = lemma.lower().strip()
+        if token:
+            tokens.append(token)
+    return tokens
 
 
 def build_index(root: Path, namespace: str, data_dir: Path) -> int:
