@@ -76,10 +76,21 @@ def hash_id(path: str, idx: int, text: str) -> str:
 def build_chunks(root: Path, namespace: str) -> list[Chunk]:
     chunks: list[Chunk] = []
     for p in iter_markdown(root):
-        text = p.read_text(encoding="utf-8", errors="ignore")
-        for i, c in enumerate(chunk_markdown(text)):
-            chunks.append(Chunk(id=hash_id(str(p), i, c), text=c, path=str(p), namespace=namespace))
+        chunks.extend(chunks_for_file(p, namespace))
     return chunks
+
+
+def chunks_for_file(file_path: Path, namespace: str) -> list[Chunk]:
+    text = file_path.read_text(encoding="utf-8", errors="ignore")
+    return [
+        Chunk(
+            id=hash_id(str(file_path), i, c),
+            text=c,
+            path=str(file_path),
+            namespace=namespace,
+        )
+        for i, c in enumerate(chunk_markdown(text))
+    ]
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
@@ -102,17 +113,12 @@ def tokenize(text: str) -> list[str]:
     return tokens
 
 
-def build_index(root: Path, namespace: str, data_dir: Path) -> int:
-    data_dir.mkdir(parents=True, exist_ok=True)
-    chunks = build_chunks(root, namespace)
+def _chunks_to_rows(chunks: list[Chunk]) -> list[dict]:
     if not chunks:
-        return 0
-
+        return []
     texts = [c.text for c in chunks]
     vectors = embed_texts(texts)
-
-    db = lancedb.connect(str(data_dir / "lancedb"))
-    rows = [
+    return [
         {
             "id": c.id,
             "text": c.text,
@@ -122,21 +128,83 @@ def build_index(root: Path, namespace: str, data_dir: Path) -> int:
         }
         for c, v in zip(chunks, vectors)
     ]
-    if TABLE_NAME in db.list_tables():
-        db.drop_table(TABLE_NAME)
-    db.create_table(TABLE_NAME, data=rows)
 
+
+def _rebuild_bm25(table, data_dir: Path) -> None:
+    """Re-dump the BM25 pickle from every row currently in the LanceDB table."""
+    arrow_table = table.to_arrow().select(["id", "text", "path", "namespace"])
+    records = arrow_table.to_pylist()
+    texts = [r["text"] for r in records]
     tokenized = [tokenize(t) for t in texts]
-    bm25 = BM25Okapi(tokenized)
+    bm25 = BM25Okapi(tokenized) if tokenized else None
     with (data_dir / "bm25.pkl").open("wb") as f:
         pickle.dump(
             {
                 "bm25": bm25,
-                "ids": [c.id for c in chunks],
+                "ids": [r["id"] for r in records],
                 "texts": texts,
-                "paths": [c.path for c in chunks],
-                "namespaces": [c.namespace for c in chunks],
+                "paths": [r["path"] for r in records],
+                "namespaces": [r["namespace"] for r in records],
             },
             f,
         )
+
+
+def _upsert_rows(data_dir: Path, where: str, rows: list[dict]):
+    """Delete existing rows matching `where`, then insert `rows`. Returns the table."""
+    data_dir.mkdir(parents=True, exist_ok=True)
+    db = lancedb.connect(str(data_dir / "lancedb"))
+    if TABLE_NAME in db.list_tables():
+        table = db.open_table(TABLE_NAME)
+        table.delete(where)
+        if rows:
+            table.add(rows)
+    elif rows:
+        table = db.create_table(TABLE_NAME, data=rows)
+    else:
+        return None
+    return table
+
+
+def _escape_sql(value: str) -> str:
+    return value.replace("'", "''")
+
+
+def build_index(root: Path, namespace: str, data_dir: Path) -> int:
+    """Re-index all markdown under `root` for `namespace` (other namespaces untouched)."""
+    chunks = build_chunks(root, namespace)
+    rows = _chunks_to_rows(chunks)
+    table = _upsert_rows(
+        data_dir,
+        where=f"namespace = '{_escape_sql(namespace)}'",
+        rows=rows,
+    )
+    if table is None:
+        return 0
+    _rebuild_bm25(table, data_dir)
     return len(chunks)
+
+
+def reindex_file(file_path: Path, namespace: str, data_dir: Path) -> int:
+    """Re-index a single file. Existing rows for that path (any namespace) are replaced."""
+    chunks = chunks_for_file(file_path, namespace)
+    rows = _chunks_to_rows(chunks)
+    table = _upsert_rows(
+        data_dir,
+        where=f"path = '{_escape_sql(str(file_path))}'",
+        rows=rows,
+    )
+    if table is None:
+        return 0
+    _rebuild_bm25(table, data_dir)
+    return len(chunks)
+
+
+def remove_file(file_path: Path, data_dir: Path) -> None:
+    """Drop all chunks for a deleted file and rebuild the BM25 pickle."""
+    db = lancedb.connect(str(data_dir / "lancedb"))
+    if TABLE_NAME not in db.list_tables():
+        return
+    table = db.open_table(TABLE_NAME)
+    table.delete(f"path = '{_escape_sql(str(file_path))}'")
+    _rebuild_bm25(table, data_dir)
