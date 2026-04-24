@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Mnemo — the librarian of your memory">
+  <title>Mnemo</title>
+  <desc>A hooded librarian holding a book with a red bookmark. MyBrain's memory keeper.</desc>
+
+  <rect width="120" height="120" rx="16" ry="16" fill="#0f1114"/>
+  <ellipse cx="60" cy="108" rx="28" ry="3" fill="#000" opacity="0.35"/>
+
+  <path d="M 26 112 L 26 74 Q 26 44 60 44 Q 94 44 94 74 L 94 112 Z" fill="#24282f"/>
+  <path d="M 26 74 Q 26 44 60 44 Q 94 44 94 74 Z" fill="#2d323b"/>
+
+  <circle cx="60" cy="60" r="13" fill="#ece6d6"/>
+  <path d="M 47 60 Q 47 42 60 42 Q 73 42 73 60 Z" fill="#1a1d23"/>
+
+  <g stroke="#d4a84f" stroke-width="1.1" fill="none">
+    <circle cx="55" cy="60" r="3.2"/>
+    <circle cx="65" cy="60" r="3.2"/>
+    <line x1="58.2" y1="60" x2="61.8" y2="60"/>
+  </g>
+
+  <g fill="#0f1114">
+    <circle cx="55" cy="60" r="0.9">
+      <animate attributeName="ry" values="0.9;0.9;0.1;0.9" keyTimes="0;0.9;0.95;1" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="65" cy="60" r="0.9">
+      <animate attributeName="ry" values="0.9;0.9;0.1;0.9" keyTimes="0;0.9;0.95;1" dur="5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <g>
+    <rect x="41" y="82" width="38" height="22" rx="2" fill="#8d6d28"/>
+    <rect x="41" y="80" width="38" height="22" rx="2" fill="#d4a84f"/>
+    <line x1="60" y1="80" x2="60" y2="102" stroke="#0f1114" stroke-width="0.8"/>
+    <line x1="43" y1="84" x2="57" y2="84" stroke="#f5e9c3" stroke-width="0.6" opacity="0.8"/>
+    <line x1="63" y1="84" x2="77" y2="84" stroke="#f5e9c3" stroke-width="0.6" opacity="0.8"/>
+    <line x1="43" y1="88" x2="57" y2="88" stroke="#f5e9c3" stroke-width="0.6" opacity="0.6"/>
+    <line x1="63" y1="88" x2="77" y2="88" stroke="#f5e9c3" stroke-width="0.6" opacity="0.6"/>
+    <rect x="55" y="80" width="3" height="11" fill="#e85c44"/>
+  </g>
+</svg>

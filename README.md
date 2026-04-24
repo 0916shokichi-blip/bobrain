@@ -1,4 +1,8 @@
-# MyBrain MCP
+<div align="center">
+  <img src="assets/mnemo.svg" alt="Mnemo — the librarian of your memory" width="120" height="120"/>
+  <h1>MyBrain MCP</h1>
+  <p><em>Mnemo, the librarian of your memory.</em></p>
+</div>
 
 A **local-first multi-source RAG MCP server** — search across your Obsidian vaults, Git repositories, and PDF libraries from Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
 
