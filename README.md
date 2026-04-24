@@ -50,6 +50,9 @@ uv run mybrain search "how did I chunk markdown" -k 5
 
 # cross-namespace filter
 uv run mybrain search "mcp server" --ns notes --ns code
+
+# keep the index live while you edit (Ctrl+C to stop)
+uv run mybrain watch ~/Documents/notes -n notes
 ```
 
 ## MCP client setup
@@ -74,8 +77,8 @@ Then from Claude / Cursor / Claude Desktop you can call the `search_docs` tool d
 
 - [x] Japanese-aware BM25 via MeCab (fugashi + unidic-lite)
 - [x] Upgrade embeddings to `multilingual-e5-large` (query/passage prefix aware)
+- [x] Incremental indexing with `watchdog` (`mybrain watch`)
 - [ ] Source-type-aware chunkers (Markdown heading-aware, code AST-aware via tree-sitter, PDF layout-aware via pymupdf)
-- [ ] Incremental indexing with `watchdog`
 - [ ] LLM Wiki auto-detection (directories containing `CLAUDE.md + log.md + index.md`)
 - [ ] Reranker integration (Voyage / Cohere)
 - [ ] Pro tier with cloud sync and team sharing
