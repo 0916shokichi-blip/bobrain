@@ -1,0 +1,42 @@
+[project]
+name = "mybrain-mcp"
+version = "0.1.0"
+description = "A local-first multi-source RAG MCP server — search across Obsidian vaults, Git repos, and PDFs from Claude / Cursor / Claude Desktop."
+readme = "README.md"
+authors = [
+    { name = "東将大", email = "0916.shokichi@gmail.com" }
+]
+license = { text = "MIT" }
+keywords = ["mcp", "rag", "embeddings", "search", "obsidian", "llm", "claude", "cursor"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastembed>=0.8.0",
+    "lancedb>=0.30.2",
+    "mcp>=1.27.0",
+    "pymupdf>=1.27.2.2",
+    "rank-bm25>=0.2.2",
+    "typer>=0.24.2",
+    "watchdog>=6.0.0",
+]
+
+[project.scripts]
+mybrain = "mybrain_mcp.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/0916shokichi-blip/mybrain-mcp"
+Repository = "https://github.com/0916shokichi-blip/mybrain-mcp"
+Issues = "https://github.com/0916shokichi-blip/mybrain-mcp/issues"
+
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
