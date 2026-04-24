@@ -100,7 +100,7 @@ def build_index(root: Path, namespace: str, data_dir: Path) -> int:
         }
         for c, v in zip(chunks, vectors)
     ]
-    if TABLE_NAME in db.table_names():
+    if TABLE_NAME in db.list_tables():
         db.drop_table(TABLE_NAME)
     db.create_table(TABLE_NAME, data=rows)
 
