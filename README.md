@@ -32,33 +32,60 @@ and get a single ranked list spanning your Obsidian vault and your `~/code/` dir
 Requires Python 3.12+.
 
 ```bash
+# Recommended: install once, run from anywhere
+pipx install mybrain-mcp
+
+# Or run a one-shot without installing (uv 0.5+)
+uvx mybrain --help
+```
+
+Or clone and develop locally:
+
+```bash
 git clone https://github.com/0916shokichi-blip/mybrain-mcp.git
 cd mybrain-mcp
 uv sync
 ```
 
+> First indexing run downloads the `multilingual-e5-large` ONNX weights (~2.2 GB) into the fastembed cache. Subsequent runs reuse it.
+
 ## Quickstart
 
 ```bash
 # index a directory under a namespace
-uv run mybrain index ~/Documents/notes -n notes
+mybrain index ~/Documents/notes -n notes
 
 # index a second namespace (they live side by side)
-uv run mybrain index ~/code/my-project -n code
+mybrain index ~/code/my-project -n code
 
 # quick CLI search (BM25 + vector hybrid)
-uv run mybrain search "how did I chunk markdown" -k 5
+mybrain search "how did I chunk markdown" -k 5
 
 # cross-namespace filter
-uv run mybrain search "mcp server" --ns notes --ns code
+mybrain search "mcp server" --ns notes --ns code
 
 # keep the index live while you edit (Ctrl+C to stop)
-uv run mybrain watch ~/Documents/notes -n notes
+mybrain watch ~/Documents/notes -n notes
 ```
+
+(If you cloned the repo instead of installing, prefix every command with `uv run`.)
 
 ## MCP client setup
 
-Point your MCP client at the stdio server:
+Point your MCP client at the stdio server. If you installed via `pipx`:
+
+```json
+{
+  "mcpServers": {
+    "mybrain": {
+      "command": "mybrain",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Or, from a local clone:
 
 ```json
 {
