@@ -17,6 +17,19 @@ MODEL_NAME = "intfloat/multilingual-e5-large"
 VECTOR_DIM = 1024
 TABLE_NAME = "chunks"
 
+# Directories we never want to scan, even when the user points --root at a
+# parent that contains them. Without this, `mybrain index ~/myrepo` happily
+# walks into .venv/ (hundreds of vendored READMEs) or node_modules/.
+_EXCLUDE_DIRS = frozenset({
+    ".venv", "venv", ".env",
+    "node_modules",
+    ".git",
+    "__pycache__",
+    ".mypy_cache", ".ruff_cache", ".pytest_cache",
+    "dist", "build", ".cache",
+    ".obsidian", ".trash",
+})
+
 _NOISE_POS = {"助詞", "助動詞", "補助記号", "空白", "記号"}
 _tagger: Tagger | None = None
 
@@ -36,8 +49,16 @@ class Chunk:
     namespace: str
 
 
-def iter_markdown(root: Path) -> Iterable[Path]:
-    return (p for p in root.rglob("*.md") if p.is_file())
+def iter_markdown(
+    root: Path, extra_excludes: Iterable[str] = ()
+) -> Iterable[Path]:
+    excludes = _EXCLUDE_DIRS | set(extra_excludes)
+    for p in root.rglob("*.md"):
+        if not p.is_file():
+            continue
+        if any(part in excludes for part in p.parts):
+            continue
+        yield p
 
 
 def chunk_markdown(text: str, max_chars: int = 1000) -> list[str]:
@@ -73,9 +94,11 @@ def hash_id(path: str, idx: int, text: str) -> str:
     return h.hexdigest()[:16]
 
 
-def build_chunks(root: Path, namespace: str) -> list[Chunk]:
+def build_chunks(
+    root: Path, namespace: str, extra_excludes: Iterable[str] = ()
+) -> list[Chunk]:
     chunks: list[Chunk] = []
-    for p in iter_markdown(root):
+    for p in iter_markdown(root, extra_excludes):
         chunks.extend(chunks_for_file(p, namespace))
     return chunks
 
@@ -156,29 +179,50 @@ def _table_exists(db, name: str) -> bool:
     return name in db.list_tables().tables
 
 
+def _table_vector_dim(table) -> int | None:
+    """Return the declared vector dim of the chunks table, or None if unknown."""
+    for field in table.schema:
+        if field.name == "vector" and hasattr(field.type, "list_size"):
+            return field.type.list_size
+    return None
+
+
 def _upsert_rows(data_dir: Path, where: str, rows: list[dict]):
     """Delete existing rows matching `where`, then insert `rows`. Returns the table."""
     data_dir.mkdir(parents=True, exist_ok=True)
     db = lancedb.connect(str(data_dir / "lancedb"))
+
     if _table_exists(db, TABLE_NAME):
         table = db.open_table(TABLE_NAME)
-        table.delete(where)
-        if rows:
-            table.add(rows)
-    elif rows:
-        table = db.create_table(TABLE_NAME, data=rows)
-    else:
-        return None
-    return table
+        existing_dim = _table_vector_dim(table)
+        if existing_dim is not None and existing_dim != VECTOR_DIM:
+            # The embedding model changed since this index was built; the old
+            # FixedSizeList column can't accept new rows. Drop and let the
+            # rest of this call recreate the table with the current schema.
+            db.drop_table(TABLE_NAME)
+        else:
+            table.delete(where)
+            if rows:
+                table.add(rows)
+            return table
+
+    if rows:
+        return db.create_table(TABLE_NAME, data=rows)
+    return None
 
 
 def _escape_sql(value: str) -> str:
     return value.replace("'", "''")
 
 
-def build_index(root: Path, namespace: str, data_dir: Path) -> int:
+def build_index(
+    root: Path,
+    namespace: str,
+    data_dir: Path,
+    extra_excludes: Iterable[str] = (),
+) -> int:
     """Re-index all markdown under `root` for `namespace` (other namespaces untouched)."""
-    chunks = build_chunks(root, namespace)
+    chunks = build_chunks(root, namespace, extra_excludes)
     rows = _chunks_to_rows(chunks)
     table = _upsert_rows(
         data_dir,

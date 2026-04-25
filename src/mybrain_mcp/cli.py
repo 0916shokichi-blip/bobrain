@@ -21,8 +21,15 @@ def index(
     path: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
     namespace: str = typer.Option("default", "--namespace", "-n"),
     data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="MYBRAIN_DATA"),
+    exclude: list[str] = typer.Option(
+        None,
+        "--exclude",
+        "-x",
+        help="Directory name to skip (repeat for more). Adds to the built-in "
+        "list of exclusions like .venv / node_modules / .git.",
+    ),
 ) -> None:
-    n = build_index(path, namespace, data_dir)
+    n = build_index(path, namespace, data_dir, extra_excludes=tuple(exclude or ()))
     typer.echo(f"indexed {n} chunks (ns='{namespace}') at {data_dir}")
 
 
