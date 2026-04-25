@@ -4,19 +4,20 @@
   <p><em>Mnemo, the librarian of your memory.</em></p>
 </div>
 
-A **local-first multi-source RAG MCP server** — search across your Obsidian vaults, Git repositories, and PDF libraries from Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
+A **local-first multi-source RAG MCP server** — search across multiple Obsidian vaults and the Markdown docs in your code repositories from Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
 
-> Status: **early prototype**. APIs and storage layout may change.
+> Status: **early prototype**. Markdown-only today; PDF and code-AST chunking are on the roadmap. APIs and storage layout may change.
 
 ## What it is
 
 MyBrain MCP indexes multiple local directories into a single hybrid search layer (BM25 + dense embeddings, combined via Reciprocal Rank Fusion) and exposes a `search_docs` MCP tool so your AI client can retrieve relevant chunks across **all of your personal knowledge sources at once**.
 
-Unlike existing RAG servers that focus on a single directory tree, a single format (Markdown only, code only), or require cloud embeddings, MyBrain:
+Unlike existing RAG servers that focus on a single directory tree or require cloud embeddings, MyBrain:
 
-- runs **fully local** with in-process ONNX embeddings
+- runs **fully local** with in-process ONNX embeddings (`multilingual-e5-large`)
 - supports **multiple independent root directories** with namespace isolation
-- is designed for people whose knowledge lives in **more than one place** (a Vault, a few repos, a folder of PDFs)
+- ships **Japanese-aware BM25** out of the box (MeCab via `fugashi + unidic-lite`)
+- is designed for people whose knowledge lives in **more than one place** — an Obsidian vault and the README/docs folder of every active repo
 
 ## Killer use case
 
@@ -78,7 +79,10 @@ Then from Claude / Cursor / Claude Desktop you can call the `search_docs` tool d
 - [x] Japanese-aware BM25 via MeCab (fugashi + unidic-lite)
 - [x] Upgrade embeddings to `multilingual-e5-large` (query/passage prefix aware)
 - [x] Incremental indexing with `watchdog` (`mybrain watch`)
-- [ ] Source-type-aware chunkers (Markdown heading-aware, code AST-aware via tree-sitter, PDF layout-aware via pymupdf)
+- [x] Indexing progress + per-phase wall times (`scan / embed / db-write / bm25`)
+- [ ] PDF chunker via `pymupdf` (dependency already in)
+- [ ] Markdown heading-aware chunker (today: fixed character window)
+- [ ] Code AST-aware chunker (tree-sitter)
 - [ ] LLM Wiki auto-detection (directories containing `CLAUDE.md + log.md + index.md`)
 - [ ] Reranker integration (Voyage / Cohere)
 - [ ] Pro tier with cloud sync and team sharing
