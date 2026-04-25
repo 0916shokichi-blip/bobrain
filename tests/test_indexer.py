@@ -6,7 +6,7 @@ from pathlib import Path
 
 import lancedb
 
-from mybrain_mcp.indexer import (
+from bobrain.indexer import (
     TABLE_NAME,
     VECTOR_DIM,
     _table_vector_dim,

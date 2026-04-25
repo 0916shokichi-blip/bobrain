@@ -23,12 +23,12 @@ labels: bug
 
 - OS: <!-- macOS 14.5 / Ubuntu 22.04 / Windows 11 etc -->
 - Python: <!-- python --version -->
-- mybrain-mcp version: <!-- pip show mybrain-mcp | grep Version -->
+- bobrain version: <!-- pip show bobrain | grep Version -->
 - MCP client: <!-- Claude Desktop / Cursor / Claude Code / other -->
 
 ## Index command output
 
-<!-- Paste the full stderr from `mybrain index ...` if relevant.
+<!-- Paste the full stderr from `bobrain index ...` if relevant.
      The phase timings (`scan / embed / db-write / bm25`) help a lot. -->
 
 ```

@@ -9,10 +9,10 @@ import typer
 from .indexer import build_index
 from .search import search as do_search
 
-app = typer.Typer(help="MyBrain MCP — local multi-source RAG for Claude, Cursor, and friends")
+app = typer.Typer(help="Bobrain — local multi-source RAG for Claude, Cursor, and friends")
 
 DEFAULT_DATA_DIR = Path(
-    os.environ.get("MYBRAIN_DATA", str(Path.home() / ".mybrain"))
+    os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain"))
 )
 
 
@@ -20,7 +20,7 @@ DEFAULT_DATA_DIR = Path(
 def index(
     path: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
     namespace: str = typer.Option("default", "--namespace", "-n"),
-    data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="MYBRAIN_DATA"),
+    data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="BOBRAIN_DATA"),
     exclude: list[str] = typer.Option(
         None,
         "--exclude",
@@ -38,7 +38,7 @@ def search(
     query: str,
     top_k: int = typer.Option(5, "--top-k", "-k"),
     namespaces: list[str] = typer.Option(None, "--ns"),
-    data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="MYBRAIN_DATA"),
+    data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="BOBRAIN_DATA"),
 ) -> None:
     results = do_search(query, data_dir, top_k=top_k, namespaces=namespaces or None)
     if not results:
@@ -53,7 +53,7 @@ def search(
 def watch(
     path: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
     namespace: str = typer.Option("default", "--namespace", "-n"),
-    data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="MYBRAIN_DATA"),
+    data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="BOBRAIN_DATA"),
     debounce_ms: int = typer.Option(500, "--debounce-ms"),
 ) -> None:
     """Keep the index in sync with `path` (Ctrl+C to stop)."""

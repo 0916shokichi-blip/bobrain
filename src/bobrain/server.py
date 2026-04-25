@@ -8,9 +8,9 @@ from mcp.server.fastmcp import FastMCP
 
 from .search import search as do_search
 
-DATA_DIR = Path(os.environ.get("MYBRAIN_DATA", str(Path.home() / ".mybrain")))
+DATA_DIR = Path(os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain")))
 
-mcp = FastMCP("mybrain")
+mcp = FastMCP("bobrain")
 
 
 @mcp.tool()

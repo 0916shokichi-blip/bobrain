@@ -23,7 +23,7 @@ VECTOR_DIM = 1024
 TABLE_NAME = "chunks"
 
 # Directories we never want to scan, even when the user points --root at a
-# parent that contains them. Without this, `mybrain index ~/myrepo` happily
+# parent that contains them. Without this, `bobrain index ~/myrepo` happily
 # walks into .venv/ (hundreds of vendored READMEs) or node_modules/.
 _EXCLUDE_DIRS = frozenset({
     ".venv", "venv", ".env",
@@ -142,7 +142,7 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
 
 def _progress_disabled() -> bool:
     """Suppress progress bars when not running in a TTY or when explicitly silenced."""
-    if os.environ.get("MYBRAIN_QUIET"):
+    if os.environ.get("BOBRAIN_QUIET"):
         return True
     return not sys.stderr.isatty()
 

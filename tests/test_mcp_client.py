@@ -1,4 +1,4 @@
-"""End-to-end test: spawn `mybrain serve` and exercise the MCP protocol.
+"""End-to-end test: spawn `bobrain serve` and exercise the MCP protocol.
 
 Runs the server as a stdio subprocess, lists tools, and calls `search_docs`
 with a query that should hit the bundled sample corpus. Verifies that at
@@ -16,7 +16,7 @@ import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from mybrain_mcp.indexer import build_index
+from bobrain.indexer import build_index
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_DIR = REPO_ROOT / "sample"
@@ -25,15 +25,15 @@ SAMPLE_DIR = REPO_ROOT / "sample"
 @pytest.fixture(scope="module")
 def indexed_data_dir() -> Path:
     """Build a fresh index of the sample corpus in a temp dir."""
-    tmp = Path(tempfile.mkdtemp(prefix="mybrain-mcptest-"))
+    tmp = Path(tempfile.mkdtemp(prefix="bobraintest-"))
     n = build_index(SAMPLE_DIR, namespace="sample", data_dir=tmp)
     assert n > 0, "indexing produced no chunks"
     return tmp
 
 
 async def _run_protocol(data_dir: Path) -> dict:
-    env = {**os.environ, "MYBRAIN_DATA": str(data_dir)}
-    params = StdioServerParameters(command="uv", args=["run", "mybrain", "serve"], env=env)
+    env = {**os.environ, "BOBRAIN_DATA": str(data_dir)}
+    params = StdioServerParameters(command="uv", args=["run", "bobrain", "serve"], env=env)
 
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:

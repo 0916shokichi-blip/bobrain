@@ -1,4 +1,4 @@
-"""Filesystem watcher: keep the MyBrain index in sync with a live directory."""
+"""Filesystem watcher: keep the Bobrain index in sync with a live directory."""
 from __future__ import annotations
 
 import threading

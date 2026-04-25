@@ -1,7 +1,7 @@
 """Unit tests for the MeCab-backed tokenizer."""
 from __future__ import annotations
 
-from mybrain_mcp.indexer import tokenize
+from bobrain.indexer import tokenize
 
 
 def test_japanese_splits_content_words() -> None:

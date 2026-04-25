@@ -17,9 +17,9 @@ from pathlib import Path
 import lancedb
 import pytest
 
-from mybrain_mcp.indexer import TABLE_NAME, build_index
-from mybrain_mcp.search import search as do_search
-from mybrain_mcp.watcher import _apply, _Debouncer, _PendingEvent, watch
+from bobrain.indexer import TABLE_NAME, build_index
+from bobrain.search import search as do_search
+from bobrain.watcher import _apply, _Debouncer, _PendingEvent, watch
 
 
 def _rows_for(data_dir: Path, filename: str) -> list[dict]:
@@ -42,8 +42,8 @@ def _paths_in_index(data_dir: Path, query: str) -> set[str]:
 @pytest.fixture()
 def corpus():
     """A temp source dir (3 .md files) + a temp data dir with a fresh index."""
-    with tempfile.TemporaryDirectory(prefix="mybrain-src-") as src, \
-         tempfile.TemporaryDirectory(prefix="mybrain-data-") as data:
+    with tempfile.TemporaryDirectory(prefix="bobrain-src-") as src, \
+         tempfile.TemporaryDirectory(prefix="bobrain-data-") as data:
         src_dir = Path(src)
         data_dir = Path(data)
         _write(src_dir / "alpha.md", "# alpha\n\nThe MCP protocol is designed for agents.")

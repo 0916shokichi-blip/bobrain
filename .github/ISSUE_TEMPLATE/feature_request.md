@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for MyBrain MCP
+about: Suggest an idea for Bobrain
 title: "[feature] "
 labels: enhancement
 ---
