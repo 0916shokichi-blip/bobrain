@@ -2,8 +2,12 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import pickle
 import re
+import sys
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -12,6 +16,7 @@ import lancedb
 from fastembed import TextEmbedding
 from fugashi import Tagger
 from rank_bm25 import BM25Okapi
+from tqdm import tqdm
 
 MODEL_NAME = "intfloat/multilingual-e5-large"
 VECTOR_DIM = 1024
@@ -119,7 +124,39 @@ def chunks_for_file(file_path: Path, namespace: str) -> list[Chunk]:
 def embed_texts(texts: list[str]) -> list[list[float]]:
     """Embed documents for indexing. Uses passage_embed so e5 prefixes are applied."""
     model = TextEmbedding(model_name=MODEL_NAME)
-    return [list(map(float, v)) for v in model.passage_embed(texts)]
+    out: list[list[float]] = []
+    bar = tqdm(
+        total=len(texts),
+        desc="embed",
+        unit="ch",
+        disable=_progress_disabled(),
+        file=sys.stderr,
+        leave=False,
+    )
+    for v in model.passage_embed(texts):
+        out.append([float(x) for x in v])
+        bar.update(1)
+    bar.close()
+    return out
+
+
+def _progress_disabled() -> bool:
+    """Suppress progress bars when not running in a TTY or when explicitly silenced."""
+    if os.environ.get("MYBRAIN_QUIET"):
+        return True
+    return not sys.stderr.isatty()
+
+
+@contextmanager
+def _phase(name: str, n: int | None = None):
+    """Time a phase and print 'phase: 1.2s (N items)' to stderr on exit."""
+    t0 = time.perf_counter()
+    try:
+        yield
+    finally:
+        dt = time.perf_counter() - t0
+        suffix = f" ({n} items)" if n is not None else ""
+        print(f"  {name}: {dt:.1f}s{suffix}", file=sys.stderr)
 
 
 def tokenize(text: str) -> list[str]:
@@ -222,16 +259,20 @@ def build_index(
     extra_excludes: Iterable[str] = (),
 ) -> int:
     """Re-index all markdown under `root` for `namespace` (other namespaces untouched)."""
-    chunks = build_chunks(root, namespace, extra_excludes)
-    rows = _chunks_to_rows(chunks)
-    table = _upsert_rows(
-        data_dir,
-        where=f"namespace = '{_escape_sql(namespace)}'",
-        rows=rows,
-    )
+    with _phase("scan"):
+        chunks = build_chunks(root, namespace, extra_excludes)
+    with _phase("embed", n=len(chunks)):
+        rows = _chunks_to_rows(chunks)
+    with _phase("db-write", n=len(rows)):
+        table = _upsert_rows(
+            data_dir,
+            where=f"namespace = '{_escape_sql(namespace)}'",
+            rows=rows,
+        )
     if table is None:
         return 0
-    _rebuild_bm25(table, data_dir)
+    with _phase("bm25"):
+        _rebuild_bm25(table, data_dir)
     return len(chunks)
 
 

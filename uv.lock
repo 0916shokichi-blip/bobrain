@@ -697,6 +697,7 @@ dependencies = [
     { name = "mcp" },
     { name = "pymupdf" },
     { name = "rank-bm25" },
+    { name = "tqdm" },
     { name = "typer" },
     { name = "watchdog" },
 ]
@@ -715,6 +716,7 @@ requires-dist = [
     { name = "mcp", specifier = ">=1.27.0" },
     { name = "pymupdf", specifier = ">=1.27.2.2" },
     { name = "rank-bm25", specifier = ">=0.2.2" },
+    { name = "tqdm", specifier = ">=4.67.3" },
     { name = "typer", specifier = ">=0.24.2" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
