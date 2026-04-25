@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A local-first multi-source RAG MCP server — search across Obsidian vaults, Git repos, and PDFs from Claude / Cursor / Claude Desktop."
 readme = "README.md"
 authors = [
-    { name = "東将大", email = "0916.shokichi@gmail.com" }
+    { name = "ぼぶ", email = "278669525+0916shokichi-blip@users.noreply.github.com" }
 ]
 license = { text = "MIT" }
 keywords = ["mcp", "rag", "embeddings", "search", "obsidian", "llm", "claude", "cursor"]
