@@ -2,6 +2,11 @@
   <img src="assets/bob.svg" alt="Bob — your pocket second brain" width="120" height="120"/>
   <h1>Bobrain</h1>
   <p><em>Bob, your pocket second brain.</em></p>
+  <p>
+    <a href="https://github.com/0916shokichi-blip/bobrain/actions/workflows/ci.yml">
+      <img src="https://github.com/0916shokichi-blip/bobrain/actions/workflows/ci.yml/badge.svg" alt="CI"/>
+    </a>
+  </p>
 </div>
 
 A **local-first multi-source RAG MCP server** — search across multiple Obsidian vaults and the Markdown docs in your code repositories from Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
