@@ -8,6 +8,8 @@ A **local-first multi-source RAG MCP server** — search across multiple Obsidia
 
 > Status: **early prototype**. Markdown-only today; PDF and code-AST chunking are on the roadmap. APIs and storage layout may change.
 
+> Landing page: `docs/index.html` — open it locally with `python3 -m http.server` from the repo root and visit `/docs/`, or browse the [hosted version](#) once published.<!-- TODO: replace # with bobrain.vercel.app or <user>.github.io/bobrain after deploy -->
+
 ## What it is
 
 Bobrain indexes multiple local directories into a single hybrid search layer (BM25 + dense embeddings, combined via Reciprocal Rank Fusion) and exposes a `search_docs` MCP tool so your AI client can retrieve relevant chunks across **all of your personal knowledge sources at once**.
@@ -33,11 +35,15 @@ Requires Python 3.12+.
 
 ```bash
 # Recommended: install once, run from anywhere
-pipx install bobrain
+pipx install git+https://github.com/0916shokichi-blip/bobrain
+# (after PyPI release: pipx install bobrain)
 
 # Or run a one-shot without installing (uv 0.5+)
-uvx bobrain --help
+uvx --from git+https://github.com/0916shokichi-blip/bobrain bobrain --help
+# (after PyPI release: uvx bobrain --help)
 ```
+<!-- TODO: switch to plain `pipx install bobrain` and `uvx bobrain` once published to PyPI -->
+
 
 Or clone and develop locally:
 
@@ -84,6 +90,7 @@ Point your MCP client at the stdio server. If you installed via `pipx`:
   }
 }
 ```
+The `bobrain` command on `PATH` works the same way whether you installed from PyPI or from the git URL above.
 
 Or, from a local clone:
 

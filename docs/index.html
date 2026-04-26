@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0f1114" />
+
+<title>Bobrain — Local-first hybrid RAG for Obsidian and code</title>
+<meta name="description" content="Search your Obsidian vault and your code repos with the same query. Local-first hybrid RAG (BM25 + e5) over MCP. Japanese tokenizer included." />
+
+<link rel="canonical" href="https://github.com/0916shokichi-blip/bobrain" />
+
+<meta property="og:title" content="Bobrain — Local-first hybrid RAG for Obsidian and code" />
+<meta property="og:description" content="Search your Obsidian vault and your code repos with the same query. Local-first, MCP-native, Japanese-aware out of the box." />
+<meta property="og:image" content="assets/og.png" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://github.com/0916shokichi-blip/bobrain" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Bobrain — Local-first hybrid RAG for Obsidian and code" />
+<meta name="twitter:description" content="Search your Obsidian vault and your code repos with the same query." />
+<meta name="twitter:image" content="assets/og.png" />
+
+<link rel="icon" type="image/svg+xml" href="assets/bob.svg" />
+
+<style>
+  :root {
+    --bg: #0f1114;
+    --bg-deep: #080810;
+    --bg-card: #14171c;
+    --bg-code: #0a0c0f;
+    --fg: #ece6d6;
+    --fg-mute: #a8a092;
+    --fg-faint: #6b6558;
+    --line: #24272d;
+    --accent: #b14a3a;
+    --accent-soft: #e85c44;
+    --accent-deep: #7a3327;
+    --accent-glow: rgba(177, 74, 58, 0.18);
+    --gold: #d4a84f;
+    --container: 880px;
+    --container-narrow: 720px;
+    --radius: 6px;
+    --jp: -apple-system, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", sans-serif;
+    --en: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--en);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  html[lang="ja"] body { font-family: var(--jp); }
+
+  ::selection { background: var(--accent); color: var(--fg); }
+
+  a {
+    color: var(--fg);
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease;
+  }
+  a:hover { color: var(--accent-soft); }
+
+  code, kbd, pre, samp { font-family: var(--mono); font-size: 0.92em; }
+
+  .num { font-variant-numeric: tabular-nums; }
+
+  .container {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .container-narrow {
+    max-width: var(--container-narrow);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ------- top bar ------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(15, 17, 20, 0.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+  .brand__logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 14px;
+    color: var(--fg-mute);
+  }
+  .nav a { text-decoration: none; }
+  .nav a:hover { color: var(--fg); }
+  @media (max-width: 640px) {
+    .nav { gap: 12px; }
+    .nav a[href^="#"] { display: none !important; }
+    .topbar__inner { height: 52px; }
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--fg-mute);
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: var(--mono);
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+  }
+  .lang-toggle:hover { border-color: var(--accent); color: var(--fg); }
+  .lang-toggle__active { color: var(--accent-soft); }
+
+  /* ------- hero ------- */
+  .hero {
+    padding: 96px 0 64px;
+    background: radial-gradient(ellipse at top, var(--accent-glow), transparent 60%);
+  }
+  .hero__inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 720px) {
+    .hero { padding: 56px 0 40px; }
+    .hero__inner { grid-template-columns: 1fr; gap: 32px; }
+  }
+
+  .hero__eyebrow {
+    color: var(--accent-soft);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.15;
+    font-weight: 200;
+    letter-spacing: 0.01em;
+    margin: 0 0 20px;
+  }
+  html[lang="ja"] .hero h1 { letter-spacing: 0.04em; line-height: 1.3; }
+
+  .hero h1 strong {
+    color: var(--accent-soft);
+    font-weight: 400;
+  }
+  .hero__sub {
+    font-size: 18px;
+    color: var(--fg-mute);
+    line-height: 1.7;
+    margin: 0 0 32px;
+    max-width: 540px;
+  }
+  .cta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn--primary {
+    background: var(--accent);
+    color: var(--fg);
+    border-color: var(--accent-deep);
+  }
+  .btn--primary:hover { background: var(--accent-soft); color: var(--fg); }
+  .btn--ghost {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--fg);
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+  .btn--ghost:hover { border-color: var(--accent); color: var(--accent-soft); }
+
+  .hero__caption {
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-faint);
+    letter-spacing: 0.06em;
+  }
+
+  .hero__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bob-frame {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #1a1d22, var(--bg-deep) 70%);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 60px var(--accent-glow);
+  }
+  .bob-frame svg { width: 180px; height: 180px; }
+
+  /* ------- demo (terminal mockup) ------- */
+  .demo {
+    padding: 16px 0 64px;
+  }
+  .terminal {
+    background: var(--bg-code);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .terminal__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: #0d0f12;
+  }
+  .terminal__dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--line);
+  }
+  .terminal__title {
+    margin-left: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-faint);
+    letter-spacing: 0.06em;
+  }
+  .terminal__body {
+    padding: 22px 24px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .term-prompt { color: var(--accent-soft); }
+  .term-cmd { color: var(--fg); }
+  .term-flag { color: var(--gold); }
+  .term-string { color: #a8c5a0; }
+  .term-comment { color: var(--fg-faint); }
+  .term-ns-notes { color: #c5a8e8; font-weight: 600; }
+  .term-ns-code { color: #88c5e8; font-weight: 600; }
+  .term-score { color: var(--gold); }
+  .term-path { color: var(--fg-mute); }
+  .term-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    background: var(--accent-soft);
+    vertical-align: text-bottom;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .demo__caption {
+    text-align: center;
+    margin-top: 14px;
+    color: var(--fg-faint);
+    font-size: 13px;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+  }
+
+  /* ------- generic section ------- */
+  .section {
+    padding: 96px 0;
+    border-top: 1px solid var(--line);
+  }
+  .section--tight { padding: 64px 0; }
+
+  .eyebrow {
+    color: var(--accent-soft);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+  }
+  h2 {
+    font-size: clamp(26px, 3.5vw, 34px);
+    font-weight: 200;
+    letter-spacing: 0.02em;
+    margin: 0 0 24px;
+    line-height: 1.3;
+  }
+  html[lang="ja"] h2 { letter-spacing: 0.05em; }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    letter-spacing: 0.02em;
+  }
+  p { margin: 0 0 16px; }
+  .lead { color: var(--fg-mute); max-width: 640px; }
+
+  /* ------- pain list ------- */
+  .pain-list {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 0;
+    display: grid;
+    gap: 18px;
+  }
+  .pain-list li {
+    padding: 18px 22px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    color: var(--fg-mute);
+    line-height: 1.7;
+  }
+  .pain-list li strong { color: var(--fg); font-weight: 600; }
+
+  /* ------- features ------- */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-top: 32px;
+  }
+  @media (max-width: 720px) {
+    .features { grid-template-columns: 1fr; }
+  }
+  .feature {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 26px 24px;
+    transition: border-color 0.2s ease;
+  }
+  .feature:hover { border-color: var(--accent-deep); }
+  .feature__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--accent-glow);
+    color: var(--accent-soft);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .feature p { color: var(--fg-mute); font-size: 15px; line-height: 1.65; }
+  .feature__proof {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-faint);
+  }
+  .feature__proof code { color: var(--gold); }
+
+  /* ------- quickstart ------- */
+  .qs-step {
+    margin-top: 28px;
+  }
+  .qs-step__num {
+    display: inline-block;
+    width: 24px; height: 24px;
+    border: 1px solid var(--accent);
+    color: var(--accent-soft);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-right: 10px;
+    font-weight: 600;
+  }
+  .qs-step h3 { display: inline; font-weight: 500; font-size: 16px; }
+  .qs-step p { margin: 8px 0 12px 34px; color: var(--fg-mute); font-size: 14.5px; }
+
+  pre.code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 0 0 0 34px;
+    overflow-x: auto;
+    color: var(--fg);
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  pre.code-block .cmt { color: var(--fg-faint); }
+  pre.code-block .flag { color: var(--gold); }
+
+  /* ------- benchmark table ------- */
+  .bench {
+    margin-top: 32px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .bench table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .bench th, .bench td {
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  .bench th {
+    color: var(--fg-mute);
+    font-weight: 500;
+    background: var(--bg-card);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .bench tr:last-child td { border-bottom: 0; }
+  .bench td.metric { color: var(--fg-mute); }
+  .bench td.value { color: var(--fg); font-family: var(--mono); font-size: 13.5px; }
+  .bench .stars { color: var(--gold); letter-spacing: 0.05em; }
+  .bench .stars-mute { color: var(--fg-faint); }
+
+  .bench-note {
+    margin-top: 18px;
+    color: var(--fg-faint);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  /* ------- why now ------- */
+  .why-now p {
+    color: var(--fg-mute);
+    font-size: 16.5px;
+    line-height: 1.85;
+    max-width: 640px;
+  }
+  .why-now .pull {
+    color: var(--fg);
+    border-left: 2px solid var(--accent);
+    padding-left: 18px;
+    font-style: italic;
+    margin: 24px 0;
+  }
+
+  /* ------- faq ------- */
+  .faq {
+    margin-top: 24px;
+    display: grid;
+    gap: 8px;
+  }
+  details.faq-item {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0;
+    overflow: hidden;
+  }
+  details.faq-item[open] { border-color: var(--accent-deep); }
+  details.faq-item summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 18px 22px;
+    font-weight: 500;
+    font-size: 15.5px;
+    color: var(--fg);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  details.faq-item summary::-webkit-details-marker { display: none; }
+  details.faq-item summary::after {
+    content: "+";
+    color: var(--accent-soft);
+    font-family: var(--mono);
+    font-size: 18px;
+    transition: transform 0.2s ease;
+  }
+  details.faq-item[open] summary::after { content: "−"; }
+  details.faq-item .faq-body {
+    padding: 0 22px 20px;
+    color: var(--fg-mute);
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* ------- final cta ------- */
+  .final-cta {
+    text-align: center;
+    padding: 96px 0;
+    border-top: 1px solid var(--line);
+    background: radial-gradient(ellipse at center, var(--accent-glow), transparent 70%);
+  }
+  .final-cta h2 {
+    font-size: clamp(24px, 3vw, 30px);
+    max-width: 560px;
+    margin: 0 auto 28px;
+  }
+  .final-cta .cta-row { justify-content: center; }
+
+  /* ------- footer ------- */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 36px 0 48px;
+    text-align: center;
+    color: var(--fg-faint);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  footer .by {
+    color: var(--fg-mute);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  footer .author-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+  footer .meta {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ------- bilingual visibility ------- */
+  [data-lang] { display: none; }
+  html[lang="en"] [data-lang="en"] { display: revert; }
+  html[lang="ja"] [data-lang="ja"] { display: revert; }
+  /* For elements inside flex/grid that need block */
+  html[lang="en"] [data-lang="en"].block,
+  html[lang="ja"] [data-lang="ja"].block { display: block; }
+
+  /* skip-link a11y */
+  .skip {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+  }
+  .skip:focus { left: 16px; top: 16px; background: var(--bg-card); padding: 8px 12px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ============= top bar ============= -->
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="#" aria-label="Bobrain home">
+      <span class="brand__logo" aria-hidden="true">
+        <svg viewBox="0 0 120 120" width="28" height="28">
+          <rect width="120" height="120" rx="16" fill="#0f1114"/>
+          <path d="M30 70 Q26 60 30 52 Q26 44 34 40 Q36 30 46 32 Q50 26 58 30 Q60 26 64 30 Q70 26 74 32 Q84 30 86 40 Q94 44 90 52 Q94 60 90 70 Q90 80 80 82 L40 82 Q30 80 30 70 Z" fill="#d4a48f"/>
+          <g stroke="#d4a84f" stroke-width="1.4" fill="none">
+            <circle cx="50" cy="60" r="5"/>
+            <circle cx="70" cy="60" r="5"/>
+            <line x1="55" y1="60" x2="65" y2="60"/>
+          </g>
+        </svg>
+      </span>
+      <span>Bobrain</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#features" data-lang="en">Features</a>
+      <a href="#features" data-lang="ja">機能</a>
+      <a href="#quickstart" data-lang="en">Quickstart</a>
+      <a href="#quickstart" data-lang="ja">使い方</a>
+      <a href="#bench" data-lang="en">Numbers</a>
+      <a href="#bench" data-lang="ja">実測値</a>
+      <a href="https://github.com/0916shokichi-blip/bobrain" target="_blank" rel="noopener">GitHub →</a>
+      <button class="lang-toggle" id="lang-toggle" aria-label="Toggle language">
+        <span id="lang-en" class="lang-toggle__active">EN</span>
+        <span style="opacity:.4">/</span>
+        <span id="lang-ja">JA</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============= hero ============= -->
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <p class="hero__eyebrow">Local-first hybrid RAG · MCP-native · MIT</p>
+
+      <h1 data-lang="en">
+        Search your <strong>vault</strong><br/>
+        and your <strong>code</strong>,<br/>
+        with the same query.
+      </h1>
+      <h1 data-lang="ja">
+        <strong>Obsidian Vault</strong> も<br/>
+        <strong>Git repo</strong> も、<br/>
+        同じ質問で検索する。
+      </h1>
+
+      <p class="hero__sub" data-lang="en">
+        Bobrain is a local-first hybrid RAG (BM25 + e5 embeddings)
+        you wire into Claude / Cursor / Claude Desktop over MCP.
+        Japanese tokenizer ships in the default install.
+        No cloud, no API key, no vendor lock-in.
+      </p>
+      <p class="hero__sub" data-lang="ja">
+        Bobrain はローカル完結のハイブリッド RAG（BM25 + e5 embedding）です。
+        Claude / Cursor / Claude Desktop に MCP で繋ぐだけで、
+        ノートとコードを横断検索できます。
+        日本語トークナイザ（MeCab / fugashi）を初期同梱、
+        クラウド不要・API キー不要・ベンダーロックなし。
+      </p>
+
+      <div class="cta-row">
+        <a class="btn btn--primary" href="https://github.com/0916shokichi-blip/bobrain" target="_blank" rel="noopener">
+          <span aria-hidden="true">★</span>
+          <span data-lang="en">Star on GitHub</span>
+          <span data-lang="ja">GitHub で Star をつける</span>
+        </a>
+        <a class="btn btn--ghost" href="#quickstart">
+          <span data-lang="en">View Quickstart →</span>
+          <span data-lang="ja">使い方を見る →</span>
+        </a>
+      </div>
+
+      <p class="hero__caption" data-lang="en">
+        MIT licensed · Apple Silicon tested · Python 3.12+
+      </p>
+      <p class="hero__caption" data-lang="ja">
+        MIT ライセンス · Apple Silicon 動作確認済 · Python 3.12+
+      </p>
+    </div>
+
+    <div class="hero__art" aria-hidden="true">
+      <div class="bob-frame">
+        <!-- Bob mascot inline (matches assets/bob.svg) -->
+        <svg viewBox="0 0 120 120" role="img" aria-label="Bob — your pocket second brain">
+          <title>Bob</title>
+          <path d="M30 70 Q26 60 30 52 Q26 44 34 40 Q36 30 46 32 Q50 26 58 30 Q60 26 64 30 Q70 26 74 32 Q84 30 86 40 Q94 44 90 52 Q94 60 90 70 Q90 80 80 82 L40 82 Q30 80 30 70 Z" fill="#d4a48f"/>
+          <g stroke="#a07764" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7">
+            <path d="M38 50 Q46 46 52 52"/>
+            <path d="M56 46 Q60 50 64 46"/>
+            <path d="M68 52 Q74 46 82 50"/>
+            <path d="M36 62 Q46 58 56 64"/>
+            <path d="M64 64 Q74 58 84 62"/>
+            <path d="M42 74 Q50 70 58 74"/>
+            <path d="M62 74 Q70 70 78 74"/>
+          </g>
+          <path d="M60 32 Q58 50 60 76" stroke="#a07764" stroke-width="1.2" fill="none" opacity="0.5"/>
+          <g stroke="#d4a84f" stroke-width="1.2" fill="none">
+            <circle cx="50" cy="60" r="5"/>
+            <circle cx="70" cy="60" r="5"/>
+            <line x1="55" y1="60" x2="65" y2="60"/>
+            <line x1="45" y1="58" x2="42" y2="56"/>
+            <line x1="75" y1="58" x2="78" y2="56"/>
+          </g>
+          <g fill="#0f1114">
+            <circle cx="50" cy="60" r="1.6">
+              <animate attributeName="ry" values="1.6;1.6;0.15;1.6" keyTimes="0;0.92;0.96;1" dur="5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="70" cy="60" r="1.6">
+              <animate attributeName="ry" values="1.6;1.6;0.15;1.6" keyTimes="0;0.92;0.96;1" dur="5s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+          <g>
+            <rect x="40" y="86" width="40" height="18" rx="2" fill="#8d6d28"/>
+            <rect x="40" y="84" width="40" height="18" rx="2" fill="#d4a84f"/>
+            <line x1="60" y1="84" x2="60" y2="102" stroke="#0f1114" stroke-width="0.8"/>
+            <line x1="42" y1="89" x2="56" y2="89" stroke="#f5e9c3" stroke-width="0.6" opacity="0.8"/>
+            <line x1="64" y1="89" x2="78" y2="89" stroke="#f5e9c3" stroke-width="0.6" opacity="0.8"/>
+            <line x1="42" y1="93" x2="56" y2="93" stroke="#f5e9c3" stroke-width="0.6" opacity="0.6"/>
+            <line x1="64" y1="93" x2="78" y2="93" stroke="#f5e9c3" stroke-width="0.6" opacity="0.6"/>
+            <rect x="55" y="84" width="3" height="11" fill="#e85c44"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============= demo terminal ============= -->
+<section class="demo">
+  <div class="container">
+    <div class="terminal" role="img" aria-label="Bobrain CLI search example">
+      <div class="terminal__bar" aria-hidden="true">
+        <span class="terminal__dot"></span>
+        <span class="terminal__dot"></span>
+        <span class="terminal__dot"></span>
+        <span class="terminal__title">~/projects/myapp — bobrain</span>
+      </div>
+      <div class="terminal__body"><span class="term-prompt">$</span> <span class="term-cmd">bobrain search</span> <span class="term-string">"DB schema for the analytics rewrite"</span> <span class="term-flag">--ns</span> notes <span class="term-flag">--ns</span> code
+
+[<span class="term-ns-notes">notes</span>] <span class="term-score">0.87</span>  <span class="term-path">~/Documents/Obsidian Vault/projects/db-design.md</span>
+   The new analytics table needs a composite index on (user_id, event_type, ts).
+   We dropped the old wide events table after the 0.6 migration; everything
+   lives in event_facts now. See ADR-014 for the rationale.
+
+[<span class="term-ns-code">code</span>]  <span class="term-score">0.81</span>  <span class="term-path">~/repos/myapp/migrations/014_event_facts.sql</span>
+   CREATE TABLE event_facts (
+     user_id    BIGINT  NOT NULL,
+     event_type SMALLINT NOT NULL,
+     ts         TIMESTAMPTZ NOT NULL,
+     ...
+
+[<span class="term-ns-notes">notes</span>] <span class="term-score">0.74</span>  <span class="term-path">~/Documents/Obsidian Vault/zettel/ADR-014-event-facts.md</span>
+   We chose a fact table over event-sourcing because read patterns are
+   strictly aggregate. Re-examine if write-path latency exceeds 50ms p95.
+
+<span class="term-comment"># 1042 chunks across 4 namespaces · 187ms total · BM25 + e5 hybrid</span><span class="term-cursor"></span></div>
+    </div>
+    <p class="demo__caption" data-lang="en">↑ One query. Two sources. The same CLI also speaks MCP to Claude Desktop and Cursor.</p>
+    <p class="demo__caption" data-lang="ja">↑ 1 つの質問、2 つのソース。同じ CLI が MCP で Claude Desktop / Cursor からも呼べます。</p>
+  </div>
+</section>
+
+<!-- ============= pain → solution ============= -->
+<section class="section">
+  <div class="container-narrow">
+    <p class="eyebrow" data-lang="en">If any of this is familiar…</p>
+    <p class="eyebrow" data-lang="ja">こんな経験、ありませんか？</p>
+    <h2 data-lang="en">You probably tried RAG before.</h2>
+    <h2 data-lang="ja">たぶん、RAG は一度試したはず。</h2>
+
+    <ul class="pain-list" data-lang="en">
+      <li>You set up something with the OpenAI API, then realized your notes were now sitting in <strong>someone else's logs</strong>.</li>
+      <li>You found a great repo, but the README assumed English-only text and your <strong>Japanese notes scored badly</strong>.</li>
+      <li>You wanted Claude to see <strong>both your vault and your code</strong>, but each tool only indexed one folder.</li>
+    </ul>
+    <ul class="pain-list" data-lang="ja">
+      <li>OpenAI に投げる構成にしたら、自分のノートが <strong>他社のログに残ること</strong>に気づいて止めた。</li>
+      <li>よさそうな repo を見つけたが、英語前提で <strong>日本語ノートがまったくヒット</strong>しなかった。</li>
+      <li>Claude に <strong>Vault と code の両方</strong>を見せたかったのに、ツールは片方しか index してくれなかった。</li>
+    </ul>
+
+    <p class="lead" style="margin-top:28px" data-lang="en">
+      Bobrain is the answer when you've already lived all three.
+    </p>
+    <p class="lead" style="margin-top:28px" data-lang="ja">
+      3 つ全部に心当たりがある人のための Bobrain です。
+    </p>
+  </div>
+</section>
+
+<!-- ============= features ============= -->
+<section class="section" id="features">
+  <div class="container">
+    <p class="eyebrow" data-lang="en">Four things, done well</p>
+    <p class="eyebrow" data-lang="ja">4 つだけ、丁寧に</p>
+    <h2 data-lang="en">What Bobrain actually does.</h2>
+    <h2 data-lang="ja">Bobrain ができること、できないこと。</h2>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature__icon">01</div>
+        <h3 data-lang="en">Local-first by design</h3>
+        <h3 data-lang="ja">設計からローカル</h3>
+        <p data-lang="en">Your notes never leave your machine. Vector store on disk, embeddings on CPU. No telemetry. No API key.</p>
+        <p data-lang="ja">ノートは手元から出ません。ベクトルストアもローカル、embedding も CPU。テレメトリなし、API キーなし。</p>
+        <div class="feature__proof">Powered by <code>lancedb</code> + <code>fastembed</code></div>
+      </div>
+
+      <div class="feature">
+        <div class="feature__icon">02</div>
+        <h3 data-lang="en">Hybrid retrieval, RRF-fused</h3>
+        <h3 data-lang="ja">ハイブリッド検索、RRF で融合</h3>
+        <p data-lang="en">BM25 catches exact terms. <code>multilingual-e5-large</code> catches semantics. Reciprocal Rank Fusion combines both for any query.</p>
+        <p data-lang="ja">BM25 が完全一致、e5 embedding が意味検索を担当。Reciprocal Rank Fusion で両者を統合します。</p>
+        <div class="feature__proof"><code>rank-bm25</code> + <code>intfloat/multilingual-e5-large</code></div>
+      </div>
+
+      <div class="feature">
+        <div class="feature__icon">03</div>
+        <h3 data-lang="en">Japanese, out of the box</h3>
+        <h3 data-lang="ja">日本語、最初から動く</h3>
+        <p data-lang="en">MeCab tokenizer ships with the default install via <code>fugashi[unidic-lite]</code>. No extra config for Japanese content. English and code work the same way.</p>
+        <p data-lang="ja"><code>fugashi[unidic-lite]</code> 経由で MeCab を標準同梱。日本語ノートでも追加設定なし。英語・コードも同じ精度で扱えます。</p>
+        <div class="feature__proof"><code>fugashi[unidic-lite]</code> · MeCab morphological tokenizer</div>
+      </div>
+
+      <div class="feature">
+        <div class="feature__icon">04</div>
+        <h3 data-lang="en">Multi-namespace, MCP-native</h3>
+        <h3 data-lang="ja">マルチ namespace、MCP 標準</h3>
+        <p data-lang="en">Index your vault and a Git repo as separate namespaces. Query across them in one MCP call from Claude Desktop, Cursor, or Claude Code.</p>
+        <p data-lang="ja">Obsidian Vault と Git repo を別 namespace で index。Claude Desktop / Cursor / Claude Code から、一度の MCP 呼び出しで横断検索できます。</p>
+        <div class="feature__proof"><code>mcp</code> (FastMCP) · stdio transport · <code>watchdog</code> for live sync</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============= quickstart ============= -->
+<section class="section" id="quickstart">
+  <div class="container-narrow">
+    <p class="eyebrow" data-lang="en">Three commands</p>
+    <p class="eyebrow" data-lang="ja">コマンドは 3 つ</p>
+    <h2 data-lang="en">Get it running in under five minutes.</h2>
+    <h2 data-lang="ja">5 分で動かしてみる。</h2>
+
+    <div class="qs-step">
+      <span class="qs-step__num">1</span>
+      <h3 data-lang="en">Install</h3>
+      <h3 data-lang="ja">インストール</h3>
+      <p data-lang="en">First-run downloads ~2.2 GB of the e5-large weights into <code>~/.cache</code>. One time only.</p>
+      <p data-lang="ja">初回実行時に e5-large の重み（約 2.2 GB）が <code>~/.cache</code> にダウンロードされます。1 回だけ。</p>
+<!-- TODO: switch to `pipx install bobrain` once published to PyPI -->
+<pre class="code-block">pipx install git+https://github.com/0916shokichi-blip/bobrain
+<span class="cmt"># or, with uv:</span>
+uv tool install --from git+https://github.com/0916shokichi-blip/bobrain bobrain</pre>
+    </div>
+
+    <div class="qs-step">
+      <span class="qs-step__num">2</span>
+      <h3 data-lang="en">Index your sources</h3>
+      <h3 data-lang="ja">ソースを index</h3>
+      <p data-lang="en">Each <code>--namespace</code> is a logical bucket you can query individually or together.</p>
+      <p data-lang="ja"><code>--namespace</code> は論理的な束ねで、個別にも横断にもクエリできます。</p>
+<pre class="code-block">bobrain index <span class="flag">--namespace</span> notes ~/Documents/Obsidian\ Vault
+bobrain index <span class="flag">--namespace</span> code  ~/repos/myapp
+bobrain watch  <span class="cmt"># live sync, ~500ms after save</span></pre>
+    </div>
+
+    <div class="qs-step">
+      <span class="qs-step__num">3</span>
+      <h3 data-lang="en">Wire it into your editor</h3>
+      <h3 data-lang="ja">エディタに繋ぐ</h3>
+      <p data-lang="en">Add Bobrain to <code>claude_desktop_config.json</code> or <code>.cursor/mcp.json</code>:</p>
+      <p data-lang="ja"><code>claude_desktop_config.json</code> か <code>.cursor/mcp.json</code> に追加:</p>
+<pre class="code-block">{
+  "mcpServers": {
+    "bobrain": {
+      "command": "bobrain",
+      "args": ["serve"]
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============= benchmark ============= -->
+<section class="section" id="bench">
+  <div class="container-narrow">
+    <p class="eyebrow" data-lang="en">Honest numbers</p>
+    <p class="eyebrow" data-lang="ja">正直な数字</p>
+    <h2 data-lang="en">What it does on a real machine.</h2>
+    <h2 data-lang="ja">手元のマシンで、実際どうか。</h2>
+
+    <p class="lead" data-lang="en">
+      Measured by the author on Apple Silicon, against the author's own
+      Obsidian vault and Git repos. No synthetic corpora.
+    </p>
+    <p class="lead" data-lang="ja">
+      作者本人の Vault と repo を、Apple Silicon の手元マシンで計測しました。
+      合成コーパスではありません。
+    </p>
+
+    <div class="bench">
+      <table>
+        <thead>
+          <tr>
+            <th data-lang="en">Metric</th>
+            <th data-lang="ja">指標</th>
+            <th data-lang="en">Value</th>
+            <th data-lang="ja">実測値</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="metric" data-lang="en">Indexed corpus (real-world)</td>
+            <td class="metric" data-lang="ja">Index 実績</td>
+            <td class="value num">1,042 chunks · 4 namespaces</td>
+          </tr>
+          <tr>
+            <td class="metric" data-lang="en">Embedding speed (CPU, M-series)</td>
+            <td class="metric" data-lang="ja">Embedding 速度（CPU）</td>
+            <td class="value num">1.4 – 2.4 sec / chunk</td>
+          </tr>
+          <tr>
+            <td class="metric" data-lang="en">Query latency (hybrid, top-5)</td>
+            <td class="metric" data-lang="ja">検索レイテンシ（hybrid, top-5）</td>
+            <td class="value num">a few hundred ms</td>
+          </tr>
+          <tr>
+            <td class="metric" data-lang="en">Incremental sync after save</td>
+            <td class="metric" data-lang="ja">保存からの増分反映</td>
+            <td class="value num">~500 ms</td>
+          </tr>
+          <tr>
+            <td class="metric" data-lang="en">Quality (5 manual queries, 1–5★)</td>
+            <td class="metric" data-lang="ja">検索品質（5 クエリ手評価）</td>
+            <td class="value">
+              <span class="stars">★★★★★</span>×2 ·
+              <span class="stars">★★★★</span>×1 ·
+              <span class="stars">★★★</span>×1 ·
+              <span class="stars">★★</span>×1
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="bench-note" data-lang="en">
+      The ★★ case was a query about a topic Bobrain hadn't been
+      indexed on. The retrieval ran fine; there was no relevant document
+      to find. The full evaluation log lives in the
+      <a href="https://github.com/0916shokichi-blip/bobrain#status">repo's status section</a>.
+    </p>
+    <p class="bench-note" data-lang="ja">
+      ★★ のケースは、Bobrain にそもそも該当ネタが index されていない
+      クエリでした。検索は正常動作、ヒットすべきドキュメントがなかっただけです。
+      評価の詳細は <a href="https://github.com/0916shokichi-blip/bobrain#status">repo の status セクション</a>に残してあります。
+    </p>
+  </div>
+</section>
+
+<!-- ============= why now ============= -->
+<section class="section why-now">
+  <div class="container-narrow">
+    <p class="eyebrow" data-lang="en">Why local-first, in 2026</p>
+    <p class="eyebrow" data-lang="ja">2026 年に、なぜローカルなのか</p>
+    <h2 data-lang="en">Privacy as a property of the code path.</h2>
+    <h2 data-lang="ja">「ローカル」は性質ではなく、構造の話。</h2>
+
+    <div data-lang="en">
+      <p>Cloud RAG is fine when your data is generic. It stops being fine the moment your notes contain client names, half-formed ideas, or that one Slack thread you screenshotted.</p>
+      <p class="pull">A local index doesn't make Bobrain "private by accident." It makes the privacy property hold by construction. The data never crosses your machine boundary because there is no code path for it to cross.</p>
+      <p>That's the only useful definition of "local-first" we know.</p>
+    </div>
+    <div data-lang="ja">
+      <p>クラウド RAG は、データが汎用的なうちは何の問題もありません。ノートに顧客名や、まだ言葉になっていない思考、撮影してある Slack のスクショが混ざった瞬間、話は変わります。</p>
+      <p class="pull">ローカル実装は「結果として安全」ではなく、構造として安全です。マシンの境界を越えるコードパスが存在しないから、データはそもそも外に出ようがない。</p>
+      <p>これが私たちの考える「ローカルファースト」の唯一有効な定義です。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============= faq ============= -->
+<section class="section">
+  <div class="container-narrow">
+    <p class="eyebrow" data-lang="en">FAQ</p>
+    <p class="eyebrow" data-lang="ja">よくある質問</p>
+    <h2 data-lang="en">Things people ask before starring.</h2>
+    <h2 data-lang="ja">Star する前に気になりがちなこと。</h2>
+
+    <div class="faq">
+      <details class="faq-item">
+        <summary>
+          <span data-lang="en">How does this compare to Knowledge-RAG / Cognee / Claude Context?</span>
+          <span data-lang="ja">Knowledge-RAG / Cognee / Claude Context との違いは？</span>
+        </summary>
+        <div class="faq-body" data-lang="en">
+          Knowledge-RAG and Cognee are excellent, broader-scope RAG frameworks — Bobrain is narrower: hybrid retrieval, MCP-native, Japanese-first, ships as a single install. Claude Context (by Zilliz) is cloud and code-focused; Bobrain is local and notes + code focused. Pick the one that matches your deployment model.
+        </div>
+        <div class="faq-body" data-lang="ja">
+          Knowledge-RAG と Cognee は対象範囲の広い優れた RAG フレームワークで、Bobrain はより範囲を絞っています — ハイブリッド検索 / MCP ネイティブ / 日本語ファースト / 単一インストール。Claude Context（Zilliz）はクラウド / コード特化、Bobrain はローカル / ノート + コード。デプロイ形態で選んでください。
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span data-lang="en">Will it work without Apple Silicon?</span>
+          <span data-lang="ja">Apple Silicon じゃないと動かない？</span>
+        </summary>
+        <div class="faq-body" data-lang="en">
+          Yes — Python 3.12+ with PyTorch CPU works on x86 Linux and Windows. The benchmarks above are M-series only because that's what the author runs.
+        </div>
+        <div class="faq-body" data-lang="ja">
+          動きます — Python 3.12+ と PyTorch CPU があれば x86 Linux / Windows でも OK。上のベンチマークが M シリーズなのは、作者がそれしか持っていないからです。
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span data-lang="en">Does it support languages other than Japanese and English?</span>
+          <span data-lang="ja">日本語・英語以外の言語は？</span>
+        </summary>
+        <div class="faq-body" data-lang="en">
+          Embeddings come from <code>multilingual-e5-large</code>, so dense retrieval works for any language e5 covers. BM25 tokenization currently optimizes for ja/en — others fall back to whitespace.
+        </div>
+        <div class="faq-body" data-lang="ja">
+          embedding は <code>multilingual-e5-large</code> なので、e5 がカバーする言語なら dense 検索は機能します。BM25 トークナイズは日英最適化、その他は空白区切りにフォールバックします。
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span data-lang="en">Is there a paid version?</span>
+          <span data-lang="ja">有料版はある？</span>
+        </summary>
+        <div class="faq-body" data-lang="en">
+          Not yet. Bobrain is MIT-licensed open source today. If a Pro tier ships later, the OSS core stays OSS.
+        </div>
+        <div class="faq-body" data-lang="ja">
+          まだありません。現時点で Bobrain は MIT の OSS です。将来 Pro 版が出ても、OSS コアは OSS のまま維持します。
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span data-lang="en">Where do I report a bad result?</span>
+          <span data-lang="ja">検索結果がおかしい時はどこに報告？</span>
+        </summary>
+        <div class="faq-body" data-lang="en">
+          GitHub Issues, ideally with the query and a redacted snippet of the document. Quality reports are how the benchmark page above gets better.
+        </div>
+        <div class="faq-body" data-lang="ja">
+          GitHub Issues に、クエリと（識別情報を消した）ドキュメントの抜粋を添えてください。品質レポートが上のベンチマーク改善の起点になります。
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============= final cta ============= -->
+<section class="final-cta">
+  <div class="container-narrow">
+    <h2 data-lang="en">If this is the tool you wish existed,<br/>starring takes one click.</h2>
+    <h2 data-lang="ja">「こういうのが欲しかった」と思ったら、<br/>Star は 1 クリックで終わります。</h2>
+    <div class="cta-row">
+      <a class="btn btn--primary" href="https://github.com/0916shokichi-blip/bobrain" target="_blank" rel="noopener">
+        <span aria-hidden="true">★</span>
+        <span data-lang="en">Star bobrain on GitHub</span>
+        <span data-lang="ja">GitHub で bobrain を Star</span>
+      </a>
+      <a class="btn btn--ghost" href="https://github.com/0916shokichi-blip/bobrain#readme" target="_blank" rel="noopener">
+        <span data-lang="en">Read the docs →</span>
+        <span data-lang="ja">ドキュメントを読む →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============= footer ============= -->
+<footer>
+  <div class="container">
+    <p class="by">
+      <img class="author-avatar" src="assets/bob-baby.png" alt="ぼぶ" width="28" height="28" />
+      <span data-lang="en">Built by <strong>ぼぶ</strong> — a solo dev who keeps notes and code in the same head, and wanted one search box for both.</span>
+      <span data-lang="ja">作者: <strong>ぼぶ</strong> — ノートもコードも同じ頭で書いている個人開発者。検索窓も 1 つにしたかったので作りました。</span>
+    </p>
+    <p class="meta">MIT · 0916shokichi-blip / bobrain</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var KEY = "bobrain.lang";
+  var btn = document.getElementById("lang-toggle");
+  var labelEn = document.getElementById("lang-en");
+  var labelJa = document.getElementById("lang-ja");
+
+  function applyLang(lang) {
+    document.documentElement.lang = lang;
+    if (lang === "ja") {
+      labelEn.classList.remove("lang-toggle__active");
+      labelJa.classList.add("lang-toggle__active");
+    } else {
+      labelJa.classList.remove("lang-toggle__active");
+      labelEn.classList.add("lang-toggle__active");
+    }
+    try { localStorage.setItem(KEY, lang); } catch (e) {}
+  }
+
+  // initial: localStorage > navigator.language > en
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  if (!saved) {
+    var nav = (navigator.language || "en").toLowerCase();
+    saved = nav.indexOf("ja") === 0 ? "ja" : "en";
+  }
+  applyLang(saved);
+
+  btn.addEventListener("click", function () {
+    applyLang(document.documentElement.lang === "ja" ? "en" : "ja");
+  });
+})();
+</script>
+
+</body>
+</html>
