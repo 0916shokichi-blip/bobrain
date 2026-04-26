@@ -2,6 +2,11 @@
   <img src="assets/bob.svg" alt="Bob — your pocket second brain" width="120" height="120"/>
   <h1>Bobrain</h1>
   <p><em>Bob, your pocket second brain.</em></p>
+  <p>
+    <a href="https://github.com/0916shokichi-blip/bobrain/actions/workflows/ci.yml">
+      <img src="https://github.com/0916shokichi-blip/bobrain/actions/workflows/ci.yml/badge.svg" alt="CI"/>
+    </a>
+  </p>
 </div>
 
 A **local-first multi-source RAG MCP server** — search across multiple Obsidian vaults and the Markdown docs in your code repositories from Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
@@ -99,7 +104,14 @@ Or, from a local clone:
 }
 ```
 
-Then from Claude / Cursor / Claude Desktop you can call the `search_docs` tool directly.
+Then from Claude / Cursor / Claude Desktop you can call the MCP tools directly.
+
+## MCP tools
+
+| Tool | What it does |
+| --- | --- |
+| `search_docs(query, top_k=5, namespaces=None)` | Hybrid (BM25 + vector) search across the local index. `namespaces` is an optional allow-list. |
+| `list_namespaces()` | Lists each indexed namespace with its chunk and document counts. Use it to discover what's available before filtering `search_docs`. |
 
 ## Roadmap
 
