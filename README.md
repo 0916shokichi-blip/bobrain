@@ -104,7 +104,14 @@ Or, from a local clone:
 }
 ```
 
-Then from Claude / Cursor / Claude Desktop you can call the `search_docs` tool directly.
+Then from Claude / Cursor / Claude Desktop you can call the MCP tools directly.
+
+## MCP tools
+
+| Tool | What it does |
+| --- | --- |
+| `search_docs(query, top_k=5, namespaces=None)` | Hybrid (BM25 + vector) search across the local index. `namespaces` is an optional allow-list. |
+| `list_namespaces()` | Lists each indexed namespace with its chunk and document counts. Use it to discover what's available before filtering `search_docs`. |
 
 ## Roadmap
 

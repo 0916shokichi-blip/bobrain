@@ -30,4 +30,4 @@ jobs:
         run: uv sync --dev
 
       - name: Run lightweight tests
-        run: uv run pytest tests/test_indexer.py tests/test_tokenize.py -v
+        run: uv run pytest tests/test_indexer.py tests/test_tokenize.py tests/test_stats.py -v
