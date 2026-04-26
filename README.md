@@ -8,7 +8,7 @@ A **local-first multi-source RAG MCP server** — search across multiple Obsidia
 
 > Status: **early prototype**. Markdown-only today; PDF and code-AST chunking are on the roadmap. APIs and storage layout may change.
 
-> Landing page: `docs/index.html` — open it locally with `python3 -m http.server` from the repo root and visit `/docs/`, or browse the [hosted version](#) once published.<!-- TODO: replace # with bobrain.vercel.app or <user>.github.io/bobrain after deploy -->
+> Landing page: **<https://0916shokichi-blip.github.io/bobrain/>** — also browsable locally via `python3 -m http.server` from the repo root → `http://localhost:8000/docs/`.
 
 ## What it is
 

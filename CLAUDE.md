@@ -66,7 +66,8 @@
 - ✅ `bobrain` 系ドメインの whois 確認 → `.dev` `.app` `.io` `.sh` `.net` 等は空き、Pro 版前まではドメイン取らずに進む方針
 - ✅ LP 構成案ドラフト（`marketer-ja` agent）→ 8 セクション + 日英バイリンガル + アクセント `#b14a3a`
 - ✅ ベンチマーク数値整理 → 1042 chunks / 1.4-2.4 sec/chunk / ★ 評価をそのまま LP に
-- ✅ **LP 実装完了**: `~/projects/bobrain/docs/index.html`（単一 HTML、Playwright で動作確認済み、当初 `landing/` で作成 → GitHub Pages の publishing source 制約により `docs/` に rename）。Quickstart は `pipx install git+https://...` 初期表示、PyPI 公開後切替箇所は HTML コメントで marked
+- ✅ **LP 実装完了 + 公開**: `~/projects/bobrain/docs/index.html`（単一 HTML、Playwright で動作確認済み、当初 `landing/` で作成 → GitHub Pages の publishing source 制約により `docs/` に rename）。Quickstart は `pipx install git+https://...` 初期表示、PyPI 公開後切替箇所は HTML コメントで marked
+- ✅ **GitHub Pages 公開**: <https://0916shokichi-blip.github.io/bobrain/>（branch `main` / path `/docs`、`build_type=legacy`、HTTPS 強制、初回ビルドは数分）
 - ✅ Bobrain グローバル展開戦略レポート（外部 Deep Research）を `Documents/マネタイズ/raw/` に取り込み、`research-ja` agent で事実検証 → `pages/analyses/Bobrain Phase 3-4 統合計画 — Polar 匿名事業基盤 2026-04-26.md` で評価
 
 ### 次回着手（順序更新）
