@@ -6,12 +6,12 @@ readme = "README.md"
 authors = [
     { name = "ぼぶ", email = "278669525+0916shokichi-blip@users.noreply.github.com" }
 ]
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["mcp", "rag", "embeddings", "search", "obsidian", "llm", "claude", "cursor"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
