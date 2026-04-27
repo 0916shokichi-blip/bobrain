@@ -100,6 +100,17 @@
 - repo metadata: `gh repo edit 0916shokichi-blip/bobrain --description ... --add-topic ...`
 - author 再 rewrite（必要時）: `uvx git-filter-repo --mailmap mailmap.txt --force` の後 origin 再追加 + `git push --force-with-lease`
 
+## L0 Taste Layer（評価関数の正本）
+
+機能追加・LP コピー変更・Pro 版機能選定など、bobrain の「何を作るか / 作らないか」の判断は `.agents/director/` を参照する：
+
+- `.agents/director/vision.md` — 提供すべき変容的体験（過去の自己との再会）
+- `.agents/director/philosophy_os.md` — 上位 `cross_project_philosophy` への参照 + bobrain 固有の 3 観点
+- `.agents/director/qdaif_axes.yaml` — 4 軸スコアリング（知行合一 / パラダイムシフト / 生産的摩擦 / 多様性）、閾値 14
+- `.agents/director/anti_patterns.md` — 6 カテゴリの平凡化シグナル、該当時は QDAIF 評価以前に即却下
+
+平凡化チェックは subagent `gamma-contrarian-ja`（明示起動）で叩く。詳細はアプリツリー wiki [[自律型開発スタジオの5層モデル]] 参照。
+
 ## 仮想 AI 会社構造
 
 - CEO = ユーザー（意思決定・方向性・最終レビュー）
