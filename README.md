@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="assets/bob.svg" alt="Bob — your pocket second brain" width="120" height="120"/>
+  <img src="assets/bob.svg" alt="Bob" width="120" height="120"/>
   <h1>Bobrain</h1>
-  <p><em>Bob, your pocket second brain.</em></p>
+  <p><em>The answer you're searching for — you already wrote it, years ago.</em></p>
 </div>
 
-A **local-first multi-source RAG MCP server** — search across multiple Obsidian vaults and the Markdown docs in your code repositories from Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
+A **local-first hybrid RAG MCP server** that indexes your Obsidian vault and your Git repos together. Hybrid BM25 + e5 retrieval with a Japanese tokenizer in the default install, MCP-native for Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
 
 > Status: **early prototype**. Markdown-only today; PDF and code-AST chunking are on the roadmap. APIs and storage layout may change.
 

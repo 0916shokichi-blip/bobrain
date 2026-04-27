@@ -17,7 +17,7 @@
 - ユーザー前提: 顔出し NG / 英語は Claude が訳す / 匿名運用 / 1 日 4 時間 / リスク大好き
 - マネタイズ: コア OSS + 有料 Pro 版ハイブリッド（Lemon Squeezy 想定、MoR で顧客領収書に本名出ない）
 - ターゲット: PKM パワーユーザー + 開発両刀（日本人多め）
-- キラーメッセージ: 「Obsidian Vault と Git repo を同じ質問で検索できる」
+- キラーメッセージ: 「探している答えは、何年か前のあなたが、もう書いている」（旧: 「Obsidian Vault と Git repo を同じ質問で検索できる」を 2026-04-27 に AgentCouncil ループで更新、L0 anti_patterns カテゴリ 4 違反だった機能羅列を体験文に置き換え）
 
 ## How to apply
 
