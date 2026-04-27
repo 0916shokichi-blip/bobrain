@@ -22,7 +22,7 @@
 ## How to apply
 
 - 開発再開時は `Documents/マネタイズ/log.md` の末尾を読んで最新状態を把握
-- **Phase 1 完了 / Phase 3 #1 + #2 完了**。次は **Phase 3 #3 LP**
+- **Phase 1 完了 / Phase 3 #1 + #2 + #3 完了**（LP デプロイ + PyPI 0.1.0 公開済み、2026-04-27）。次は **Phase 3 #3 残タスク: GIF 撮影 + Social Preview 画像 + Show HN/Reddit 投稿** → **Phase 3 #4 決済**（NAWABARI / GMO / Polar.sh、人間アクション含む）
 - LanceDB ≥ 0.30 で `db.list_tables()` は `ListTablesResponse(tables=[...])` wrapper、`.tables` 経由（`_table_exists` ヘルパ済み）
 - 競合: [[Knowledge-RAG]]（最も近い）, [[Claude-Context]] (Zilliz, コード特化), [[Cognee]]（大規模・クラウド寄り）
 
