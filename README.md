@@ -35,14 +35,11 @@ Requires Python 3.12+.
 
 ```bash
 # Recommended: install once, run from anywhere
-pipx install git+https://github.com/0916shokichi-blip/bobrain
-# (after PyPI release: pipx install bobrain)
+pipx install bobrain
 
 # Or run a one-shot without installing (uv 0.5+)
-uvx --from git+https://github.com/0916shokichi-blip/bobrain bobrain --help
-# (after PyPI release: uvx bobrain --help)
+uvx bobrain --help
 ```
-<!-- TODO: switch to plain `pipx install bobrain` and `uvx bobrain` once published to PyPI -->
 
 
 Or clone and develop locally:

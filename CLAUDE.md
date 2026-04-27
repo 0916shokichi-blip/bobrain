@@ -74,8 +74,8 @@
 
 1. **15 秒デモ GIF 撮影**（`screencapture` + `gifski`）: Claude Desktop で MCP 経由 search → notes と code namespace の両方からヒット → 15 秒。プライバシー上、Vault 名は demo/ 仕切りでダミー化推奨
 2. **GitHub Social Preview 画像アップロード**（**user 操作必要**、`assets/og.png` を https://github.com/0916shokichi-blip/bobrain/settings から upload）
-3. **PyPI 公開**: `cd ~/projects/bobrain && uv build && uv publish --token pypi-XXX`（**user 操作必要**、token は https://pypi.org/manage/account/token/ で発行）
-4. **LP の `pipx install bobrain` 切替**（PyPI 公開後、`docs/index.html:880-883` の `<!-- TODO: switch to ... -->` コメント直下、`pipx install git+https://...` を `pipx install bobrain` に置き換え）
+3. ~~PyPI 公開~~ → **完了 (2026-04-27)**: `bobrain 0.1.0` <https://pypi.org/project/bobrain/>。author = ぼぶ、Scope = Entire account の token で publish 済み
+4. ~~LP の `pipx install bobrain` 切替~~ → **完了 (2026-04-27)**: `docs/index.html:880` と `README.md:36-43` の git+https 形式を `pipx install bobrain` / `uvx bobrain` に置き換え済み
 5. ~~LP デプロイ~~ → **完了**（GitHub Pages 公開済み: <https://0916shokichi-blip.github.io/bobrain/>、4/26）
 6. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿**（月曜火曜の米東部 6-8AM = 日本時間月曜夜 19-21 時、初動 90 分は Q&A に張り付き）
 
