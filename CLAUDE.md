@@ -102,6 +102,34 @@
 - repo metadata: `gh repo edit 0916shokichi-blip/bobrain --description ... --add-topic ...`
 - author 再 rewrite（必要時）: `uvx git-filter-repo --mailmap mailmap.txt --force` の後 origin 再追加 + `git push --force-with-lease`
 
+## Dispatch（スマホ）から進める時の境界
+
+Mac 不在中に Dispatch 経由で bobrain を進める場合の可否境界。`dispatch_session_protocol` + `dispatch_skill_compatibility` 準拠。**根拠**: 2026-04-28 stop-trace で `git push origin main` が harness deny されたことから整理。
+
+**進められる**:
+
+- コード編集 / Phase 2 候補（#3 複数ルート / #5 `.bobrainignore` / #6 heading chunking / #7 CoreML）の実装着手
+- テスト実行（`uv run python -m pytest -q`、16 cases）
+- CLAUDE.md / README.md / docs/index.html 編集 + ローカル動作確認
+- GIF 撮影スクリプト準備（`screencapture` + `gifski` のシェルスクリプト雛形）。実撮影は不可
+- ローカル commit + log.md 追記（`~/.claude/dispatch-closing-block.md` の正本に従い 1 commit、push しない）
+- Show HN / r/LocalLLaMA / r/ObsidianMD 投稿文ドラフト + `humanizer-ja` 通し（インライン展開）
+- author rewrite / git-filter-repo 系の準備（実 push は user）
+
+**進められない（user 認可 / GUI / KYC が必要）**:
+
+- `git push origin main` → harness deny（PUBLIC repo default branch 直 push）。User 手動 `! git push origin main` で実行
+- PyPI publish（`uv publish`）→ PYPI_API_TOKEN を Dispatch 履歴に流すのは memory `bobrain_pypi_launch.md` の地雷再発。User Mac で `! uv publish --token ...` か事前 keyring 設定で
+- GitHub release（`gh release create`）/ Social Preview 画像 upload / repo settings 変更 → ブラウザ GUI
+- GIF 実撮影 → macOS GUI + Claude Desktop 実演が必要
+- Show HN / Reddit 実投稿 → アカウント認証 + 月曜夜 19-21 時 JST のタイミング合わせ
+- NAWABARI / GMO 銀行 / Polar.sh の契約手続（KYC、本人確認動画など）
+- Custom skill 実行（`/playable-gate` `/integrate` `/ship-check` 等）→ memory `dispatch_skill_compatibility.md` 通り、Dispatch 受信側では skill が起動しない。**inline で手順を生展開** して Bash/Read/Edit を直接呼ぶことで代替
+
+**運用ヒント**: Dispatch で「PyPI 公開やっといて」「Show HN 投げといて」は不可。「PyPI 公開のための README/CHANGELOG 整備」「Show HN 投稿文 v4 を humanizer-ja 通して `.launch-drafts/` に置いといて」のように **準備系に分解** して投げる。
+
+---
+
 ## L0 Taste Layer（評価関数の正本）
 
 機能追加・LP コピー変更・Pro 版機能選定など、bobrain の「何を作るか / 作らないか」の判断は `.agents/director/` を参照する：
