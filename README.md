@@ -121,3 +121,7 @@ Then from Claude / Cursor / Claude Desktop you can call the `search_docs` tool d
 ## License
 
 MIT. See [LICENSE](./LICENSE).
+
+---
+
+_by ぼぶ_
