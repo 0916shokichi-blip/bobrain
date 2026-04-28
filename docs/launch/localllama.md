@@ -1,70 +1,76 @@
-# r/LocalLLaMA draft (v0)
+# r/LocalLLaMA draft (v1)
 
 起草日: 2026-04-28
-投稿想定: 5/5 火曜 米東部 9-11 AM = 日本時間 火曜 22-24 時（Show HN と同日夜の 2 投稿目）
-推敲ステータス: marketer-ja 起草版、未 playable-gate / 未 humanizer-ja
+投稿想定: 5/5 火曜 米東部 9-11 AM = 日本時間 火曜 22-24 時
+推敲ステータス: marketer-ja v1 (Gamma v0 全却下を受けて再起草)、再 Gamma 待ち
 
 ## title
 
 ```
-[Project] Bobrain — fully local hybrid RAG MCP server (BM25 + multilingual-e5-large via ONNX), built for searching across notes and code
+[Project] Bobrain — fully local hybrid RAG MCP server (BM25 + multilingual-e5-large via ONNX), built for cross-corpus search over notes and code
 ```
 
 ## body
 
 ```markdown
-Sharing a side project I've been running for a few weeks and finally
-released as 0.1.0 on PyPI yesterday. Posting here because LocalLLaMA folks
-tend to care about the implementation choices, not just the pitch.
+0.1.0 on PyPI yesterday after a few weeks of dogfooding. Posting here
+because the retrieval stack has a few choices I'd like pushback on.
 
-**What it is**: an MCP server that indexes Markdown notes (Obsidian vaults
-or any folder) and Git repositories into a single hybrid retrieval
-backend, exposed to Claude / Claude Desktop / Cursor via MCP. Fully local,
-no API calls, ONNX runtime.
+Origin story, brief: I asked it about an MCP chunking question last month
+and it pulled a note I wrote in 2022 with the answer already worked out. I
+hadn't remembered writing it. That moment is what convinced me the
+"single ranked list across notes + code" framing was worth shipping.
 
-**Why I'm posting it here specifically**: the retrieval stack has a few
-choices I'd like feedback on, especially from people running their own
-embedding pipelines.
+What it is: an MCP server that indexes Markdown notes (Obsidian vaults or
+any folder) and Git repositories into one hybrid retrieval backend,
+exposed to Claude / Claude Desktop / Cursor via MCP. Fully local, ONNX
+runtime, no API calls.
 
-**Stack**:
-- BM25 with `fugashi` + `unidic-lite` for Japanese morphological analysis
-  (I write in mixed JP/EN, and standard whitespace tokenization is useless
-  for Japanese).
-- Dense: `intfloat/multilingual-e5-large` via fastembed's ONNX backend.
-  Picked over `bge-m3` after testing — e5-large was meaningfully better
-  on my JP technical notes corpus, though I don't have rigorous
-  benchmarks to share, just qualitative.
-- Reciprocal Rank Fusion (k=60) for combining the two. Tried weighted
-  linear combination first; RRF was less fiddly and equally good on my
-  test queries.
-- Namespace separation between sources, so you can query notes-only,
-  code-only, or both. Mixing notes and code is good for "where did I
-  write about X" but bad for "find the function that does Y."
+Stack and the trade-offs I'm actually unsure about:
 
-**Numbers**: 1,042 chunks indexed from my current vault. Indexing runs
-~1.4–2.4 sec/chunk on M-series Mac (chunk size variation). Query latency
-is sub-second on this index size, but I haven't stressed it past 10K
-chunks yet — would love to hear from anyone who tries with a larger
-vault.
+- **BM25 with `fugashi` + `unidic-lite`** for JP morphology. Standard
+  whitespace tokenization is useless for Japanese, and I write JP/EN
+  mixed. The cost is a ~50MB install bump from `unidic-lite` — I'm
+  considering an extras dependency for non-JP users.
+- **Dense: `multilingual-e5-large` via fastembed/ONNX over `bge-m3`**.
+  Qualitative call on ~30 queries from my actual usage; not rigorous. The
+  side-effect I noticed: pure dense softens function names and library
+  names in technical notes. Hybrid catches them, single-stack didn't.
+- **RRF (k=60) over weighted linear fusion**. Less fiddly, equally good
+  on my queries.
 
-**Status disclaimer**: early prototype. Markdown-only today. PDF and
-code-AST-aware chunking are on the roadmap but not shipped. MIT licensed.
+Numbers: 1,042 chunks from my current vault, indexing ~1.4–2.4 sec/chunk
+on M-series Mac, sub-second query at this scale. I haven't pushed past
+10K chunks.
+
+One thing I noticed dogfooding that wasn't in the design doc: namespace
+separation between notes and code makes recency bias visible. Querying
+notes-only surfaces older content more than I'd intuit on my own —
+turns out my attention is more recency-biased than the index.
+
+Markdown-only today. PDF and AST-aware code chunking on the roadmap.
+MIT.
 
 Install: `pipx install bobrain` or `uvx bobrain`
 Repo: https://github.com/0916shokichi-blip/bobrain
 
-Genuinely curious if anyone has tried `multilingual-e5-large` vs `bge-m3`
-on mixed-language corpora and has data — my pick was based on a few
-dozen test queries, not anything you'd call rigorous.
-
-(Mods: happy to remove if this falls outside self-promotion guidance.)
+The choice I'm least confident in: `e5-large` vs `bge-m3` on mixed JP/EN
+technical corpora. If anyone has solid eval data, I'd genuinely change
+the default.
 ```
 
-## 投稿先別の注意点
+## v0 → v1 で何を変えたか
 
-- **投稿時刻**: r/LocalLLaMA は 24 時間活発だが、米国 EST 火曜 9-11 AM（日本時間 火曜 22-24 時）が技術系の長文に伸びやすい。月曜は週末スレが残っていて埋もれる
-- **self-promotion rule**: r/LocalLLaMA は 9:1 ルール（自分の投稿は 10% まで）が緩めだが、mod 判断で削除されることがある。**最終行の "(Mods: happy to remove if this falls outside self-promotion guidance.)"** は draft 段階で残し、投稿前に mod に DM で確認するのが安全
-- **deep に読まれるための工夫**: 「e5-large vs bge-m3 のデータが欲しい」という具体的な質問を最後に置き、コメント参加のフックにした。技術コミュニティは「こいつは本気で困っている / 知りたがっている」が伝わると伸びる
+- **冒頭刷新**: "Sharing a side project..." クリシェ廃止。"0.1.0 on PyPI yesterday" の事実から入り、続けて「2022 年の自分のメモがチャンキング問題の答えを既に持っていた / 覚えていない」アネクドートで事象開示。LocalLLaMA は確信過剰嫌いなので vision は匂わせる程度
+- **bullet 構成変更**: 3 bullet 維持（LocalLLaMA は trade-off 構造好き）だが、各 bullet に「ユーザーが体験する違い」を混ぜた（特に dense bullet の「pure dense は function/library name を softening する」= retrieval stack 選択 → 体験差の橋渡し）
+- **「namespace 分離が露見させた recency bias」段落追加**: spec ではなく dogfooding で気づいた事象、Show HN と同じ発見の質感を LocalLLaMA バージョンで（vision を匂わせるが、技術系の発見として書く）
+- **"(Mods: happy to remove..." 削除**: 弱腰削除
+- **closing は維持**: e5-large vs bge-m3 の rigorous data フックは v0 でも有効だったので残置
+
+## 投稿先別の注意点（v0 から継続）
+
+- **投稿時刻**: 米国 EST 火曜 9-11 AM（日本時間 火曜 22-24 時）
+- **self-promotion rule**: 投稿前に mod に DM で確認するのが安全
 - **初動で答えるべき暗黙の質問**: (1) なぜ ChromaDB / Qdrant / Weaviate を使わなかったのか (2) ONNX vs llama.cpp embedding (3) なぜ MCP
 
 ## 想定 Q&A（初動 90 分用）
@@ -83,14 +89,3 @@ dozen test queries, not anything you'd call rigorous.
 
 5. **Q**: How does this compare to `llama.cpp` embedding + your own glue code?
    **A**: Mostly: I didn't want to maintain the glue. fastembed wraps ONNX + tokenizer + pooling in one package and the perf is fine for this scale. If someone has a better model that's only on llama.cpp I'd add an adapter, but starting with fastembed kept the surface area small.
-
-## 気をつけたこと（anti_patterns 回避メモ）
-
-- **機能羅列を避けた箇所**: 機能リストではなく **「選択肢ごとの trade-off」** で書いた。"BM25 ... because Japanese needs morphology" / "RRF over weighted linear because less fiddly" / "namespace separation because mixing is good for X but bad for Y"
-- **誇大表現を避けた箇所**: "fast" "powerful" "state-of-the-art" を一切使わず、"meaningfully better" "qualitative, not rigorous" "I'd love to hear" と **不確かさを残した**。LocalLLaMA は確信過剰を一番嫌うコミュニティ
-- **体験文に寄せた箇所**: "I write in mixed JP/EN" "I don't have rigorous benchmarks to share, just qualitative" — 個人としての視点を残した
-- **哲学を出さなかった箇所**: 完全に技術ドリブン。書き手の人格を一切出していない（LocalLLaMA はプロダクトくささを嫌うので、ここでは無人格が正解）
-
-## 改稿で迷ったら削るポイント
-
-- "(Mods: happy to remove if this falls outside self-promotion guidance.)" は自信があれば外す（弱腰に見えるリスク）
