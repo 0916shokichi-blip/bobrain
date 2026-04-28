@@ -35,3 +35,17 @@ next: GIF 撮影 + Social Preview 画像
 - 未着手: GIF / Social Preview / Show HN 投稿（人間操作タスク群）
 
 next: Show HN 投稿準備（show-hn-draft.md v3 を user 最終確認 → 月曜夜 19-21 時投稿）
+
+## [2026-04-28] local | Launch material を .launch-drafts/ に集約 — docs/launch/ 公開リスク除去
+
+- 問題: `docs/launch/{showhn,localllama,obsidianmd}.md`（marketer-ja 起草の v0、未推敲）が GitHub Pages publish source `/docs` 配下に置かれていた → commit/push すると Web 公開され、投稿前ドラフトが事前露出するリスク（Show HN の「事前公開」判定で初動毀損の懸念）
+- 対処:
+  - `docs/launch/*` を `.launch-drafts/` に移動（untracked 状態 = まだ公開されていない段階で予防）
+  - 既に存在する final 版（`show-hn-final.md` / `reddit-localllama.md` / `reddit-obsidianmd.md`）と重複する v0 は Trash 退避（`~/.Trash/bobrain-launch-v0-20260428/`）
+- 投稿準備の整理状態（5/5 投稿想定、6 日先）:
+  - **Show HN**: `show-hn-final.md` — playable-gate v3 通過済み（anti_patterns 6 全クリア / Gamma 構造攻撃 / QDAIF 15.8 / L4 人間関門 YES）
+  - **r/LocalLLaMA**: `reddit-localllama.md` — Show HN v3 派生、stack ブレット展開 + Ollama/Docker 不要明示
+  - **r/ObsidianMD**: `reddit-obsidianmd.md` — Show HN v3 派生、PKM 文脈 + 既存 Obsidian MCP との差別化
+- 残タスク: `humanizer-ja` 通過（3 媒体、英語スタイロメトリー対策）、GIF 撮影、Social Preview 画像 upload（user 操作）、投稿実行（5/5 火曜 19-21 時 JST）
+
+next: 3 媒体に `humanizer-ja` を順次適用 → 投稿前最終チェック
