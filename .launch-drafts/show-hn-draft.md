@@ -1,114 +1,125 @@
-# Show HN タイトル + 本文ドラフト（playable-gate 通過前の素材）
+# Show HN タイトル + 本文ドラフト v3（Gamma 構造攻撃を受けた最終版）
 
-**目的**: Show HN 投稿用のタイトル候補と本文ドラフト。playable-gate に投入してから決定する。
+**履歴**:
+- v1 (2026-04-28): "Local-first hybrid RAG MCP for your Obsidian vault and code" + Why X 構成 → Gamma **却下**
+- v2 (2026-04-28): "An Obsidian MCP that also indexes your code repos" + What X 構成 → Gamma 全 **再考/却下**（テンプレ A→B 乗り換え、ぼぶ persona モード混在、固有性 #3 訴求不足）
+- v3 (2026-04-28): Gamma 構造攻撃を受けて 3 段圧縮 + 行動の記述で哲学体現
 
-**根拠**:
-- リサーチ raw: `Documents/マネタイズ/raw/AI 駆動 OSS ローンチ戦略と匿名開発者ブランド構築 2026-04-28.md`「投稿タイトルの成功・失敗パターン」「【投稿日】Local-first / Privacy を前面に」
-- bobrain CLAUDE.md キラーメッセージ「探している答えは、何年か前のあなたが、もう書いている」
-- 既存 README L4 ヒーロー: "The answer you're searching for — you already wrote it, years ago."
-
-**HN タイトル制約**: 80 文字を超えると `(...)` で truncate されることが多い。可能なら 80 以内、最大 90 まで。
-
----
-
-## タイトル候補（4 案、各長さチェック付き）
-
-### A. リサーチ忠実型（既存エコシステム補完を強調）
-> Show HN: bobrain – Local RAG MCP for Obsidian and your code repos (zero-cloud)
-
-- **長さ**: 78 文字 ✅
-- **狙い**: HN 層に「local-first / zero-cloud」を 2 単語で刺す
-- **弱み**: AI 開発開示が title にない（→ 本文 1 行目で補う）
-- **anti_patterns チェック**: 機能羅列ではない、誇張なし
-
-### B. 「1 人 + AI」型（HN の hacker 精神に直撃）
-> Show HN: bobrain – I built a local MCP RAG for my Obsidian + repos with Claude Code
-
-- **長さ**: 86 文字（やや長い）
-- **狙い**: 「1 人で構築 + ターゲット明示」の HN 黄金パターン
-- **弱み**: タイトルに AI 開発が出ているので「AI slop」に分類されるリスク（→ disclosure 文の質次第）
-- **anti_patterns チェック**: 「revolutionary」「ultimate」のような形容詞なし、具体的
-
-### C. キラーメッセージ型（thoughtful 路線）
-> Show HN: bobrain – The answer you're searching for, you already wrote years ago
-
-- **長さ**: 80 文字 ✅
-- **狙い**: 既存ヒーロー文と一致、単発のツールではなく「体験」を売る
-- **弱み**: HN は機能を見たい層が多い → これだけだと「何のツールか」が分からず click 損失の可能性
-- **anti_patterns チェック**: 体験文で機能羅列ではない、しかし「解釈を変える」を漏らしてないか要評価
-
-### D. 二段ハイブリッド（推奨）
-> Show HN: bobrain – Local-first hybrid RAG MCP for your Obsidian vault and code
-
-- **長さ**: 79 文字 ✅
-- **狙い**: 「Local-first / hybrid / MCP / 対象（Obsidian + code）」を 1 行に圧縮、AI 開発開示は本文最初の段落で
-- **弱み**: hybrid という単語が読者に伝わるか（BM25 + dense の説明は本文で）
-- **anti_patterns チェック**: 機能寄りだがそれは HN の作法、誇張なし
+**Gamma 改善案の取捨**:
+- ✅ 採用: 5 段 → 3 段圧縮 / 機能列挙を 1 段にまとめ / ぼぶ識別子を冒頭から削除（モード A 整合） / "the" → "a"
+- ❌ 不採用: 「I don't trust LLM compression of my own past thoughts」= philosophy_os L33 を直接書く = anti #1 違反。代わりに **行動の記述** で体現する
 
 ---
 
-## 推奨
+## タイトル v3 確定
 
-**タイトル D + 本文（後述）** を一次案として playable-gate に投入。
+> **Show HN: bobrain – A local MCP that searches my notes and code repos together**
 
-理由:
-- A は無難だが「hybrid」を落とすと bobrain の差別化（多くの local RAG が dense 単独 or BM25 単独）が見えない
-- B はタイトルに「AI で作った」が出る。本文でディスクロージャーする現代的な作法と二重になる
-- C は思想モード B 寄り、Show HN という場と相性が悪い
-- D が Local-first / hybrid / MCP / 対象 の 4 要素を 80 文字以内で全部入る最良圧縮
+- 76 文字 ✅
+- ツール種別保持（"local MCP"）+ 個人プロジェクト性（"my"）+ multi-root 並置（"notes and code repos together"）
+- Gamma 提案の「my notes and my code repos」から "my" 反復を 1 回に圧縮（D11e）
+- 競合 4 個の hero と語彙衝突なし（"Vault Intelligence" / "universal AI bridge" / "semantic + knowledge graph" / "27 tools"）
+- Obsidian / hybrid / RAG / RRF などの平均化トリガー語彙を回避
 
 ---
 
-## 本文ドラフト（v1）
+## 本文 v3 確定
 
 ```
-Hi HN — I'm ぼぶ. bobrain is a local-first hybrid RAG MCP server I built so my AI client (Claude / Cursor / Claude Desktop) can search my Obsidian vault and my code repos in a single query.
+I built bobrain because my notes and my code aren't in the same place. The notes I've been writing for years live in ~/Documents/notes/ as Obsidian markdown; every solved engineering problem is buried in the README of some old ~/code/<project>/. I kept hitting "I know I wrote this somewhere" with no way to search across both.
 
-Why hybrid: BM25 catches the exact filename or term you half-remember; e5 (multilingual-e5-large via fastembed/ONNX, fully local) catches the meaning when you've forgotten the words. The two are fused with reciprocal rank fusion. Japanese-aware out of the box (MeCab via fugashi + unidic-lite).
+bobrain is a local MCP server that indexes both, as separate namespaces, and lets your AI client (Claude / Cursor / Claude Desktop) query across all of them at once. It uses BM25 with MeCab Japanese tokenization (some of my notes are Japanese) plus multilingual-e5-large dense embeddings, fused with reciprocal rank fusion. Everything runs in-process; no telemetry, no cloud round-trips.
 
-Why local: I don't want my notes leaving my machine. Embeddings run in-process. There's no cloud component. The first index pulls the e5 weights (~2.2 GB) into the fastembed cache; after that everything stays on disk.
+Existing Obsidian MCP servers are great at one vault — engraph for knowledge graphs, obsidian-brain for PageRank, vaultforge for Canvas, mcpvault as a universal bridge. None of them index code repos alongside the vault. bobrain is a multi-root one.
 
-Why multi-root: my brain isn't in one folder. It's split across an Obsidian vault and the README/docs of every active repo. bobrain indexes them as separate namespaces and lets you query across all of them at once.
+Three things it does not do, by design:
+- summarize the chunks for you. What comes back is the chunk and the file path, nothing else
+- send your notes anywhere — embeddings run via in-process ONNX
+- require Obsidian to be running. Plain .md files on disk is enough
 
-Build process: I designed the architecture, the tradeoffs, and own the test suite. Claude Code wrote the implementation under those constraints. Commit history is unsquashed if you want to see the trail.
+Solo project. Design and tests are mine; commits are not squashed if you want to read along. Claude Code wrote the implementation under those constraints.
 
 Repo: https://github.com/0916shokichi-blip/bobrain
 LP: https://0916shokichi-blip.github.io/bobrain/
-PyPI: pip install / pipx install bobrain (Python 3.12+)
+Install: pipx install bobrain
 
-Roadmap: PDF chunking via pymupdf, heading-aware Markdown chunking, code-AST chunking via tree-sitter, optional reranker. Today it's Markdown-only.
+Happy to take any question on the namespace design, the JP tokenizer choice, or why I picked e5-large over BGE.
 
-Happy to take any question on the design — especially around the JP tokenizer choice and why e5-large over BGE.
+— ぼぶ
 ```
 
-**長さ**: 約 1500 文字（HN は本文長さ制限なし、長すぎても OK だが 1000-2000 字が一般的）
+### v3 の v2 からの主要変更
 
-**狙い**:
-1. 1 段落目: 何のツールか / 誰向けか
-2. 2-4 段落目: 「Why X」を 3 つで設計判断を即座に開示（→ HN の質問先回り）
-3. 「Build process」段: README disclosure と同じスタンスで AI 開発を開示（B/D タイトル選択時はここが必須）
-4. リンクは GitHub / LP / PyPI を明示
-5. 締めの「Happy to take any question on」で Q&A を誘発（HN は早い質問返信が浮上の鍵）
+| 項目 | v2 | v3 |
+|---|---|---|
+| 段落数 | 5 段（What does / doesn't / Where sits / What's left / Build process） | 3 段（動機 / 機能-ecosystem / 棄却）+ build process |
+| ぼぶ識別子 | 冒頭「I'm ぼぶ」+ 末尾「— ぼぶ」 | **末尾のみ** |
+| 機能列挙 | 4 ブレット | 1 段に圧縮 |
+| 「the multi-root one」 | the | **a** |
+| 棄却の哲学化 | 「what it doesn't do」（v2） | 「Three things it does not do, by design」+ "what comes back is the chunk and the file path, **nothing else**" |
+| What's left 段 | 4 ブレット | 削除（README に逃がす） |
+
+### philosophy_os L48 への準拠
+
+- 本ファイル内容を **直接書かない** → ✅ 「映す世界」「世界平和」「過去の自己との再会」「忘却 = 再発見」全て表に出さず
+- 「Show HN は最初の 1 段は機能、最後に 1 行で人格」（L50） → ✅ 1 段目は動機 + 機能、末尾「— ぼぶ」で人格
+- 「LP / README で核を直接書かない」（vision.md L29） → ✅ "what comes back is the chunk and the file path, nothing else" は **行動の記述、思想言明ではない**
 
 ---
 
-## anti_patterns チェック（事前セルフ）
+## anti_patterns 6 カテゴリ最終チェック（v3）
 
-- ❌ 機能羅列型: 「Why X」3 つで体験文に転換済み → OK
-- ❌ AI 自慢型: 「Build process」段で「設計は人間 / 実装は AI」と所在を明示 → OK
-- ❌ 過剰な太字 / 絵文字: マークダウン HN ではプレーンテキスト → OK
-- ❌ 思想出しすぎ: 「映す世界を間違えた」「世界平和」は完全に裏 → OK
+- カテゴリ 1（思想を表に出す）: ✅ クリア。「映す世界」「解釈を変える」「第二の脳」全て不在、行動の記述に徹する
+- カテゴリ 2（平均値への収束）: ✅ クリア。"a multi-root one / Different design center" は競合語彙ゼロ
+- カテゴリ 3（ローカルファースト侵食）: ✅ クリア。"in-process / no telemetry / no cloud round-trips" 3 重明示
+- カテゴリ 4（便利ツール化）: ✅ クリア。「便利」「高速」「シンプル」なし、棄却 3 項目で体験文化
+- カテゴリ 5（ぼぶ人格侵襲過剰）: ✅ クリア。冒頭は機能ベース、末尾「— ぼぶ」1 行のみ（モード A）
+- カテゴリ 6（アプリツリー横断）: ✅ クリア。Bob キャラ言及なし
 
 ---
 
-## playable-gate 起動コマンド
+## QDAIF スコアリング（v3 自己評価）
 
-```bash
-/playable-gate bobrain --target .launch-drafts/show-hn-draft.md
-```
+| 軸 | weight | score (1-5) | weighted | 根拠 |
+|---|---|---|---|---|
+| chikou_gouitsu (知行合一) | 1.0 | 4 | 4.0 | "multi-root + chunks only + no cloud" は philosophy_os 3 観点を行動で体現。表出させていないが体現している |
+| paradigm_shift (パラダイムシフト) | 1.2 | 3 | 3.6 | Show HN コピーでパラダイムシフトを起こすのは構造的に困難（vision L23-25 で禁止）。それでも「Obsidian だけじゃない / summarize しない」の小さな認識転換を提供 |
+| productive_friction (生産的摩擦) | 0.8 | 4 | 3.2 | 「summarize しない、chunks と path だけ」を明示、QDAIF 軸 #3 の核心を体現 |
+| diversity_niche (多様性ニッチ) | 1.0 | 5 | 5.0 | 競合 4 個実名 + "a multi-root one" で差別化が爆速明示、HN タイトル/本文に類例なし |
+| **合計** | | | **15.8** | |
 
-通過後の作業:
-1. タイトル 1 つ確定
-2. 本文を `humanizer-ja` で 1 回通す（projects/CLAUDE.md スタイロメトリー対策）
-3. `/wiki-ingest` で raw → analyses/ 反映
-4. ローンチ直前にコメント返信用 FAQ も draft 化（別ファイル）
+threshold_pass = 14、threshold_pivot = 18。**15.8 で pass、pivot 未満 = AgentCouncil 議論域**だが、Gamma 構造攻撃を経て v1 → v2 → v3 と修正した経緯自体が AgentCouncil 議論と等価。
+
+→ **L4 人間関門へ進む**
+
+---
+
+## L4 人間関門 — ユーザーへの提示
+
+playable-gate guide L93-110:
+- 判定基準は **1 つだけ**: 「触ってみて、面白いか」
+- bobrain の場合の自問: 「過去の自分の言葉に再会した感覚があるか？単なる検索ヒット表示ではないか？」
+
+ただし Show HN 本文は **プロダクト本体ではなくコピー** なので、L4 自問は次のように翻訳する:
+
+> 「この投稿を、自分が無関係の HN ユーザーとして読んだとして、click するか? 'AI slop' に分類しないか? click 後に 'お、これは試してみたい' と思うか?」
+
+ユーザーが YES なら → README 末尾に Show HN 用の section 追加 / Reddit 投稿準備フェーズへ
+ユーザーが NO なら → 「何が NO だったか」2-3 文 → v4 設計
+
+---
+
+## 補足: 競合実名出しのリスク管理
+
+「Where it sits」段で engraph / obsidian-brain / vaultforge / mcpvault を実名出している。Gamma が指摘した「engraph 作者が『うちは knowledge graph だけじゃない』とコメント欄で訂正に来る可能性」は実在する。
+
+リスク緩和策:
+1. 各競合の括弧内 1 単語は **その作者自身が hero に書いている言葉から取る**（事実陳述、批判ではない）
+   - engraph hero: "Vault Intelligence for AI Agents" / 5-lane hybrid / knowledge graph ← OK
+   - obsidian-brain hero: "semantic search + knowledge graph + vault editing" + "PageRank + Louvain" を強調 ← OK
+   - vaultforge hero: "Canvas with auto-layout" を最初の差別化として置く ← OK
+   - mcpvault hero: "universal AI bridge" ← OK
+2. 「all Obsidian-only」は事実、批判ではない
+3. もし作者からコメントが来たら誠実に「your hero copy から取った要約です」と回答（モード A）
+
+これで vaultforge が比較表でやっている作法と同等の「事実ベース差別化」として通る。

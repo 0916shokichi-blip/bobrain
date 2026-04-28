@@ -77,7 +77,8 @@
 3. ~~PyPI 公開~~ → **完了 (2026-04-27)**: `bobrain 0.1.0` <https://pypi.org/project/bobrain/>。author = ぼぶ、Scope = Entire account の token で publish 済み
 4. ~~LP の `pipx install bobrain` 切替~~ → **完了 (2026-04-27)**: `docs/index.html:880` と `README.md:36-43` の git+https 形式を `pipx install bobrain` / `uvx bobrain` に置き換え済み
 5. ~~LP デプロイ~~ → **完了**（GitHub Pages 公開済み: <https://0916shokichi-blip.github.io/bobrain/>、4/26）
-6. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿**（月曜火曜の米東部 6-8AM = 日本時間月曜夜 19-21 時、初動 90 分は Q&A に張り付き）
+6. ~~共通フッター規格 (N=1) 適用~~ → **完了 (2026-04-28)**: README.md と docs/index.html の footer を `bob_persona.md` の共通フッター規格に揃えた。Avatar by Nano Banana Pro の理由付き disclosure + `1 of 8 tools` クロスリンク（暫定 link 先 = GitHub プロフィール、bob-universe デプロイ後に bob_persona.md 1 箇所更新で全アプリ伝播）
+7. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿**（月曜火曜の米東部 6-8AM = 日本時間月曜夜 19-21 時、初動 90 分は Q&A に張り付き、`.launch-drafts/show-hn-draft.md` v3 が Gamma 通過済み）
 
 ### Phase 3 #4（決済）の方針確定（2026-04-26 統合計画より）
 
