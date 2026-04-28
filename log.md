@@ -97,3 +97,20 @@ next: 3 媒体に `humanizer-ja` を順次適用 → 投稿前最終チェック
 
 - 0eea575 で `docs/launch/* → .launch-drafts/*` 移動済み、本変更で復活防止
 - 投稿前ドラフトは常に `.launch-drafts/`（tracked、公開ルート外）に置く運用を恒常化
+
+## [2026-04-28 15:55] incident | 別セッションが先行完了済みの作業を重複実行
+
+- **発生**: 16:00 開始の別セッションが、既に同日 15:35 完了済みの「Show HN / r/LocalLLaMA / r/ObsidianMD ローンチ投稿 v3 通過 + .launch-drafts/ 集約」をやり直した。`docs/launch/{showhn.deferred,localllama,obsidianmd}.md` を新規作成、playable-gate を v0/v1/v2 で再実行、Show HN を「無理筋」と誤判定（実際は別セッションで v3 通過済み）
+- **根本原因**: ship-check 起動時に `log.md` の **直近 10 エントリを精読しなかった**。startup hook の whats-next 出力（4/27 17:00 時点）を信頼してしまい、4/28 15:23 の commit `0a42e5b` 以降の進捗を見逃した。`/board` Step 1 の俯瞰再生成は走らせたが、project log.md の deep read までは行っていなかった
+- **実害**:
+  - agent コール 6 回（marketer-ja 2 + gamma-contrarian-ja 4）の高額消費
+  - 時間 1-2 時間
+  - `docs/launch/` 配下 3 ファイル新規作成（gitignore 除外で commit 不可、安全弁が効いた）
+- **教訓（再発予防候補）**:
+  1. ship-check / launch 系作業の起動時、project の `log.md` の直近 10 エントリ（または同日エントリ全件）を **必ず精読**してから着手
+  2. `/board` Step 1 で project 別 log.md の最終更新時刻を表示する仕組みを追加候補（`projects-discover.sh` 拡張）
+  3. 「launch 投稿の v3 / final が既に存在しないか」を ship-check Step 0 で確認する skill 拡張候補
+  4. memory `usage_zero_root_cause.md` の逆パターン: 「直近で完了済み = もうやらない」を判断材料に追加候補
+- **後始末**: 新規作成した `docs/launch/{showhn.deferred,localllama,obsidianmd}.md` は `.launch-drafts/` 既存版と重複 + gitignore 除外。削除候補（user 判断）
+
+next: `docs/launch/` の重複ファイル削除判断 → `.launch-drafts/show-hn-final.md` 等を正本として humanizer-ja 通過 → 投稿（5/5 月曜夜 JST）

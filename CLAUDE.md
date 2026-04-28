@@ -31,6 +31,7 @@
 ### repo state
 
 - visibility: PUBLIC, license: MIT, default branch: main, author 全コミット「ぼぶ <278669525+0916shokichi-blip@users.noreply.github.com>」
+  - **強制方法**: local git config で匿名固定（`git config user.name "ぼぶ"` + `git config user.email "278669525+...@users.noreply.github.com"`）。global config が本名でも local が優先。新規 clone / 環境再構築時に必ず再設定。2026-04-28 に config 漏れで本名 commit を 5 件作って force push 復旧した教訓は memory `bobrain_pypi_launch.md` 第 5 の地雷参照
 - description: 「Bobrain — a local-first multi-source RAG MCP server. Search your Obsidian vault and your repo's Markdown docs in one query, from Claude / Cursor / Claude Desktop. Hybrid BM25 + dense (multilingual-e5-large), Japanese-aware out of the box.」
 - topics: `claude` `cursor` `embeddings` `japanese` `local-first` `mcp` `obsidian` `rag`
 - 旧 URL `mybrain-mcp` は GitHub が redirect
