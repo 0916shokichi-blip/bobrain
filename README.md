@@ -61,6 +61,9 @@ bobrain index ~/Documents/notes -n notes
 # index a second namespace (they live side by side)
 bobrain index ~/code/my-project -n code
 
+# index multiple roots into one namespace in a single pass
+bobrain index ~/vault ~/code/my-project -n combined
+
 # quick CLI search (BM25 + vector hybrid)
 bobrain search "how did I chunk markdown" -k 5
 
@@ -70,6 +73,28 @@ bobrain search "mcp server" --ns notes --ns code
 # keep the index live while you edit (Ctrl+C to stop)
 bobrain watch ~/Documents/notes -n notes
 ```
+
+### Excluding files with `.bobrainignore`
+
+Drop a `.bobrainignore` at any indexed root (gitignore syntax) to exclude
+private notes, scratch files, or whole subtrees:
+
+```gitignore
+# private/
+private/
+drafts/
+
+# everything ending in .scratch.md
+*.scratch.md
+
+# negation re-includes a single file
+!drafts/ship-this-one.md
+```
+
+Patterns from a `.bobrainignore` apply only inside its own directory subtree
+(same semantics as `.gitignore`), so you can place a narrower one in a
+subfolder. The built-in skip list (`.venv`, `node_modules`, `.git`, ...) is
+always active and cannot be re-enabled via `.bobrainignore`.
 
 (If you cloned the repo instead of installing, prefix every command with `uv run`.)
 
@@ -111,6 +136,8 @@ Then from Claude / Cursor / Claude Desktop you can call the `search_docs` tool d
 - [x] Upgrade embeddings to `multilingual-e5-large` (query/passage prefix aware)
 - [x] Incremental indexing with `watchdog` (`bobrain watch`)
 - [x] Indexing progress + per-phase wall times (`scan / embed / db-write / bm25`)
+- [x] Multi-root `bobrain index` (combine vault + repo in one namespace)
+- [x] `.bobrainignore` (gitignore-style per-project exclusions)
 - [ ] PDF chunker via `pymupdf` (dependency already in)
 - [ ] Markdown heading-aware chunker (today: fixed character window)
 - [ ] Code AST-aware chunker (tree-sitter)

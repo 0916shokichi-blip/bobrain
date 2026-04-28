@@ -18,7 +18,14 @@ DEFAULT_DATA_DIR = Path(
 
 @app.command()
 def index(
-    path: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
+    paths: list[Path] = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        help="One or more directories to index. All chunks are merged into the "
+        "same namespace; pass repeated directories to combine vault + repo docs.",
+    ),
     namespace: str = typer.Option("default", "--namespace", "-n"),
     data_dir: Path = typer.Option(DEFAULT_DATA_DIR, "--data", envvar="BOBRAIN_DATA"),
     exclude: list[str] = typer.Option(
@@ -26,11 +33,13 @@ def index(
         "--exclude",
         "-x",
         help="Directory name to skip (repeat for more). Adds to the built-in "
-        "list of exclusions like .venv / node_modules / .git.",
+        "list of exclusions like .venv / node_modules / .git. For per-project "
+        "patterns, drop a .bobrainignore file at the root instead.",
     ),
 ) -> None:
-    n = build_index(path, namespace, data_dir, extra_excludes=tuple(exclude or ()))
-    typer.echo(f"indexed {n} chunks (ns='{namespace}') at {data_dir}")
+    n = build_index(paths, namespace, data_dir, extra_excludes=tuple(exclude or ()))
+    roots_str = ", ".join(str(p) for p in paths)
+    typer.echo(f"indexed {n} chunks (ns='{namespace}') from {roots_str} at {data_dir}")
 
 
 @app.command()

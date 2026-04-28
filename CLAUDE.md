@@ -43,8 +43,8 @@
 
 ### 未対応の Phase 2 候補
 
-- #3 `bobrain index` 複数ルート一括指定（cold start 15-30 秒）
-- #5 `.bobrainignore` ファイルサポート
+- ~~#3 `bobrain index` 複数ルート一括指定~~ → **完了 (2026-04-28)**: `bobrain index ~/vault ~/code -n combined` のように複数 root を一度に渡せる。`build_index` / `build_chunks` が `Path | Iterable[Path]` を受ける。重複 root は resolve 済みパスで dedup
+- ~~#5 `.bobrainignore` ファイルサポート~~ → **完了 (2026-04-28)**: `pathspec` の `gitignore` factory 経由で gitignore 互換。root 直下だけでなくサブディレクトリ配下にも置ける（その配下にだけ効く）。組み込み除外（`.venv` など）は常に勝つ
 - #6 chunking が文字数ベース → Markdown heading 単位 chunking
 - #7 e5-large が CPU で 1.4–2.4 sec/chunk → CoreML provider で 5-10x の余地
 
