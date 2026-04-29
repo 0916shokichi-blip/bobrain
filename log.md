@@ -114,3 +114,22 @@ next: 3 媒体に `humanizer-ja` を順次適用 → 投稿前最終チェック
 - **後始末**: 新規作成した `docs/launch/{showhn.deferred,localllama,obsidianmd}.md` は `.launch-drafts/` 既存版と重複 + gitignore 除外。削除候補（user 判断）
 
 next: `docs/launch/` の重複ファイル削除判断 → `.launch-drafts/show-hn-final.md` 等を正本として humanizer-ja 通過 → 投稿（5/5 月曜夜 JST）
+
+## [2026-04-29] research | Show HN ローンチ戦略の DR 返答を 3 アーティファクトに永続化
+
+- **発生**: ユーザーから Gemini Deep Research 返答（2026 年 4 月時点の Show HN ベンチマーク、MCP/RAG/Obsidian 関連 30 件以上の実測）を受領
+- **アーティファクト**:
+  1. `docs/research/showhn-strategy-2026-04-29.md` — 整形版 DR ノート（沈むサイン定量基準 / 倍プッシュ閾値 / AI 開示型 4 分類 / D-7 〜 D-1 アクション + bobrain 適用判断）
+  2. memory `showhn_launch_benchmarks_2026.md` — 横断再利用版（transcribe-bird 等の OSS Show HN にも適用可）+ MEMORY.md 索引追加
+  3. `.launch-drafts/readme-performance-draft.md` — README 中盤に追加する "How it performs" セクション draft（playable-gate 必須）
+- **判断**: DR 提案 D-7「コンテキスト節約量を README に実数表で」を **hero copy に持ち込まない**。理由は L0 anti_patterns カテゴリ 4（機能羅列）違反リスク。hero「The answer you're searching for — you already wrote it, years ago.」は 2026-04-27 AgentCouncil で機能羅列から体験文に書き直した経緯があり（CLAUDE.md L37）、ここに数値を戻すと逆走する。代わりに README 中盤に独立セクションを新設する設計
+- **実測 TODO**（次セッション or ユーザー指示後）:
+  1. 代表クエリ 3 件で `bobrain search -k 5 --json` のレスポンス byte 数計測
+  2. 各 namespace の Markdown 合計 byte 計測
+  3. draft の `<TBD>` プレースホルダーを実数で埋める
+  4. `/playable-gate bobrain --target docs/readme-performance-section.md` で 4 段関門通過
+  5. README に正式マージ
+- **採用しなかった DR 提案**: hero copy への実数導入（L0 違反）/ Twitter 過剰活用（匿名運用との衝突）
+- **採用した DR 提案**: 沈むサイン定量基準 / 倍プッシュ閾値 / 投稿後 90 分張り付き + 15 分以内返信 / Architected by Human 開示強化
+
+next: 実測 → playable-gate 通過 → README 改修（playable-gate 通過後、人間判断後）/ 投稿は 5/5 月曜夜 JST 想定維持
