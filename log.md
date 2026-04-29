@@ -133,3 +133,48 @@ next: `docs/launch/` の重複ファイル削除判断 → `.launch-drafts/show-
 - **採用した DR 提案**: 沈むサイン定量基準 / 倍プッシュ閾値 / 投稿後 90 分張り付き + 15 分以内返信 / Architected by Human 開示強化
 
 next: 実測 → playable-gate 通過 → README 改修（playable-gate 通過後、人間判断後）/ 投稿は 5/5 月曜夜 JST 想定維持
+
+## [2026-04-29] gate | "How it performs" セクション draft v1 を playable-gate で却下
+
+- **target**: `.launch-drafts/readme-performance-draft.md` v1（実数埋め込み: 456 KB markdown → 1.6 KB k=5 = 285× reduction）
+- **実測**: LanceDB から直接統計取得 — 1042 chunks / 333 KB chunk total / mean 328 bytes/chunk / 4 namespaces (apptree 31 files + claude-knowledge 64 + monetize 24 + mybrain 7=旧 path)。再現スクリプト `docs/research/measure-context-savings.py` 保存済み
+- **Step 1 L0 確認**: ✅（director/ 4 ファイル揃い）
+- **Step 2 anti_patterns 即却下**: ⚠️ 境界線（カテゴリ 4「便利ツール化」グレーゾーン）→ Gamma 攻撃で精査
+- **Step 3 Gamma 却下**: 5 つの退屈の証拠
+  1. カテゴリ 4「機能比較表の数値だけで競合に勝とうとする」直撃
+  2. 同型 README が 4 件以上実在（Code Graph RAG 87% / Context-Mem 99.1% / RAG-MCP 75% / Context Mode 60×）→ MCP 業界標準テンプレ化、後発は埋没
+  3. 「per-query context cost is decoupled from vault size」がカテゴリ 2「無限スケール」の defensive 版
+  4. 「Stream the whole vault」pathological baseline は架空敵設定（draft 自身が "nobody actually does it" と認めている）
+  5. bobrain 固有エッジ（Vault + code repo 横断 / 日本語 first / chunks-only）が数値で潰される
+- **最終判定**: 🚫 却下（Step 4 QDAIF 進まず）。README 改修は **行わない**
+- **DR 提案 D-7 についての結論**: 「実数表型訴求」は DR が示す成功事例（Context Mode 等）の二番煎じになり、**真似た瞬間に成功事例の引力で平均値に吸われる**。L0 anti_patterns カテゴリ 4 を持つ bobrain では恒久的に不採用
+- **draft v1 の retain 方針**: `.launch-drafts/readme-performance-draft.md` は廃案にせず証拠資料として残置（DR 検証 + Gamma 攻撃の学習素材）
+- **Gamma 反対案（保留）**: 数値廃止 + クエリ実例 1 つ（"where did I argue against X" → 2024 年 3 月の 3 chunks が出る、のような **再現できないが具体的** な例）。ただし vault 内容の露出度は人格モード境界（memory `bob_persona` モード A/B）と要すり合わせ、自動採用しない
+- **memory 反映**: `showhn_launch_benchmarks_2026.md` に「DR 提案 D-7 の playable-gate 却下事例」セクション追記。今後の Show HN 戦略 DR を受けた時の判断材料として残す
+
+next: 投稿準備は既存 `.launch-drafts/{show-hn-final, reddit-localllama, reddit-obsidianmd}.md` を正本として進める。「実数表セクション」は追加しない。投稿日 5/5 月曜夜 JST 想定維持
+
+## [2026-04-29] DR 整理 | 価格戦略と Pro 機能の方針確定
+
+**ソース**: Gemini Deep Research「ローカルファースト RAG MCP 市場分析」(2026-04-29)
+**raw**: `Documents/マネタイズ/pages/sources/ローカルファースト RAG MCP 市場分析と価格戦略 2026-04-29.md`
+
+**決定**:
+- 価格初手 = **$49 LTD（Show HN ローンチ同日に Polar.sh 投入）**。月額決定は 30 日後の反応見て。理由: $5/mo は安すぎ・$15/mo は単独利用で高い・LTD は SaaS 疲れ層に刺さる + 完全ローカル → サーバ維持費なしで LTD リスク低
+- Pro 化候補は **「セットアップウィザード」を最有力**（v0.2.0）。設計メモは `docs/proposals/pro-setup-wizard.md`。理由: mcp.json 手書きが最大離脱ポイント、「時間を買う」価値が最も具体的
+- DR 推奨「ハイブリッド検索を Pro 化」は **却下**。OSS 0.1.0 で BM25 + multilingual-e5-large 既実装、Pro 化すると downgrade
+- 決済は **Polar.sh 単独**（DR 推奨の Lemon Squeezy 併用却下）。memory `payment_mor_provider_split` の開発者向け = Polar.sh 一択路線維持
+
+**30 日 go/no-go 判断ライン**（Show HN 後）:
+- 500★ / W1 retention 15% / Discord 100 人 / Setup 成功率 80%
+- 詳細は memory `bobrain_pypi_launch.md` セクション 7
+
+**未解決 / punt**:
+- TAM の Obsidian 非依存再算定（独立 DR 案件、§ 7 案 1）
+- Pro セットアップウィザードのライセンス検証: オフライン JWT vs. リモート API（独立 DR 案件、§ 7 案 2）
+- Cursor 用 `.cursor/mcp.json` を user 単位 / project 単位どちらに書くか
+
+**地雷**:
+- DR が「Pro = ハイブリッド検索」を提案 → README 公言済の OSS 機能を取り上げる事故になりかけた。**DR 採用前は project の README / CLAUDE.md と照合必須**（memory `external_pattern_evaluation_against_existing_design`）
+
+**次の 1 タスク**: マネタイズ wiki の `/integrate harvest`（未コミット 39 件）を先に消化、その後 bobrain も含めて commit
