@@ -177,7 +177,7 @@ next: 投稿準備は既存 `.launch-drafts/{show-hn-final, reddit-localllama, r
 **地雷**:
 - DR が「Pro = ハイブリッド検索」を提案 → README 公言済の OSS 機能を取り上げる事故になりかけた。**DR 採用前は project の README / CLAUDE.md と照合必須**（memory `external_pattern_evaluation_against_existing_design`）
 
-**次の 1 タスク**: マネタイズ wiki の `/integrate harvest`（未コミット 39 件）を先に消化、その後 bobrain も含めて commit
+**次の 1 タスク**: マネタイズ wiki の `/integrate harvest`（未コミット 39 件）を先に消化、その後 bobrain も含めて commit → **解消（2026-04-29）**: マネタイズ wiki commit `e454894` で完全統合済み（Web Clipper 13 + concepts 4 + entities 2 + sources 2 + 既存 concepts 3 加筆）
 
 ## [2026-05-01] research | W18 競合分析 → 差別化 3 軸確定
 
