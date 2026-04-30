@@ -47,7 +47,7 @@ Everything runs in-process. No Ollama daemon, no Docker, no cloud round-trips, n
 - require Obsidian to be running. Plain .md files on disk is enough
 
 **Where it sits**
-Existing Obsidian MCPs (engraph, obsidian-brain, vaultforge, mcpvault) all index a single vault. bobrain is the multi-root one — different design center.
+Existing Obsidian MCPs (engraph, obsidian-brain, vaultforge, mcpvault) all index a single vault. bobrain is the multi-root one. Different design center.
 
 **Install**
 ```

@@ -17,11 +17,11 @@ I built bobrain because my notes and my code aren't in the same place. The notes
 
 bobrain is a local MCP server that indexes both, as separate namespaces, and lets your AI client (Claude / Cursor / Claude Desktop) query across all of them at once. It uses BM25 with MeCab Japanese tokenization (some of my notes are Japanese) plus multilingual-e5-large dense embeddings, fused with reciprocal rank fusion. Everything runs in-process; no telemetry, no cloud round-trips.
 
-Existing Obsidian MCP servers are great at one vault — engraph for knowledge graphs, obsidian-brain for PageRank, vaultforge for Canvas, mcpvault as a universal bridge. None of them index code repos alongside the vault. bobrain is a multi-root one.
+Other Obsidian MCP servers stay inside one vault. Engraph does knowledge graphs, obsidian-brain does PageRank, vaultforge does Canvas, mcpvault is a universal bridge. None of them index code repos alongside the vault. bobrain indexes both.
 
 Three things it does not do, by design:
 - summarize the chunks for you. What comes back is the chunk and the file path, nothing else
-- send your notes anywhere — embeddings run via in-process ONNX
+- send your notes anywhere; embeddings run via in-process ONNX
 - require Obsidian to be running. Plain .md files on disk is enough
 
 Solo project. Design and tests are mine; commits are not squashed if you want to read along. Claude Code wrote the implementation under those constraints.

@@ -28,13 +28,13 @@
 ```
 Hi r/ObsidianMD — I want to share something I built that maybe scratches an itch some of you have too.
 
-I've been writing notes in Obsidian for years. But the thing is, half of my "knowledge" isn't in my vault — it's in the READMEs and `docs/` folders of every code project I've worked on. When I'd ask Claude (via MCP) about something, it could only see one of those at a time. I kept hitting "I know I wrote this somewhere" with no way to search both.
+I've been writing notes in Obsidian for years. But the thing is, half of my "knowledge" isn't in my vault. It's in the READMEs and `docs/` folders of every code project I've worked on. When I'd ask Claude (via MCP) about something, it could only see one of those at a time. I kept hitting "I know I wrote this somewhere" with no way to search both.
 
 So I made bobrain. It's a local MCP server that indexes your Obsidian vault and any number of other folders (like ~/code/) as separate namespaces, and lets your AI client (Claude, Cursor, Claude Desktop) search across all of them in one query.
 
 **How it differs from existing Obsidian MCPs**
 
-I checked the alternatives — engraph, obsidian-brain, vaultforge, mcpvault, and the REST API plugin-based servers (mcp-obsidian, obsidian-mcp-tools). They're all Obsidian-only. bobrain is the multi-root one.
+I checked the alternatives. Engraph, obsidian-brain, vaultforge, mcpvault, plus the REST API plugin-based servers (mcp-obsidian, obsidian-mcp-tools). They're all Obsidian-only. bobrain indexes the vault and other folders as separate namespaces.
 
 It also doesn't need Obsidian to be running, and doesn't need the Local REST API plugin installed. It just reads .md files from disk. So your vault is just a folder of files, the way it actually is.
 
@@ -43,10 +43,10 @@ It also doesn't need Obsidian to be running, and doesn't need the Local REST API
 - Japanese-aware out of the box (MeCab tokenizer, since some of my notes are JP)
 - Multiple folders as separate namespaces, queryable independently or together
 - Watch mode that reindexes as you edit
-- 100% local — no cloud, no telemetry, embeddings run on your machine
+- 100% local; no cloud, no telemetry, embeddings run on your machine
 
 **What it's not**
-- not a chatbot, not a summarizer — it returns chunks with file paths, your LLM does the rest
+- not a chatbot, not a summarizer; it returns chunks with file paths, your LLM does the rest
 - not an Obsidian plugin (it's a separate process)
 - not a replacement for Obsidian's built-in search; it's for AI clients to query your knowledge
 
@@ -64,7 +64,7 @@ Then point Claude / Cursor / Claude Desktop at it as an MCP server.
 
 Solo project. Honest disclosure: I wrote the design and tests, Claude Code wrote the implementation. Commits are unsquashed if you want to read the trail.
 
-Curious to hear how others handle this gap — especially anyone who's been mixing Obsidian with their code workflow. And happy to take any question on the namespace design or why I picked e5-large for embeddings.
+Curious to hear how others handle this gap, especially anyone who's been mixing Obsidian with their code workflow. And happy to take any question on the namespace design or why I picked e5-large for embeddings.
 
 — ぼぶ
 ```
