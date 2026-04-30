@@ -178,3 +178,28 @@ next: 投稿準備は既存 `.launch-drafts/{show-hn-final, reddit-localllama, r
 - DR が「Pro = ハイブリッド検索」を提案 → README 公言済の OSS 機能を取り上げる事故になりかけた。**DR 採用前は project の README / CLAUDE.md と照合必須**（memory `external_pattern_evaluation_against_existing_design`）
 
 **次の 1 タスク**: マネタイズ wiki の `/integrate harvest`（未コミット 39 件）を先に消化、その後 bobrain も含めて commit
+
+## [2026-05-01] research | W18 競合分析 → 差別化 3 軸確定
+
+github-trending-radar W18 synthesize（commit `2236bc6`）で発見した bobrain 直接競合 2 件 + 思想対立 1 件を `docs/research/competitive-analysis-2026-W18.md` に分析。
+
+**比較対象**:
+- **kiwifs/kiwifs** (245★、Go、BSL 1.1) — 同概念競合、「LLM Wiki pattern」明言、Web UI + 書き込み機能を持つ
+- **alash3al/stash** (592★、Go、Apache-2.0) — 機能直競合、Postgres + 8-stage consolidation pipeline、bobrain の "single binary, no Postgres" 差別化軸が確定
+- **aeroxy/ast-outline** (100★、Rust、MIT) — 思想対立、「files not embeddings」を明言、bobrain の embedding 中心戦略への陳腐化リスク評価
+
+**bobrain 差別化 3 軸の重なり点**:
+1. Japanese-aware (MeCab fugashi+unidic) BM25 + dense hybrid が default
+2. 「過去の自分との再会」体験 framing（philosophy_os 紐付け）
+3. 既存 Obsidian Vault に薄く乗る（pipx 1 行、Python パワーユーザー向け）
+
+**致命的弱点 3 つの正直な言語化** + 対応方針:
+- 弱点 1: Web UI / 書き込み機能の不在 → unix philosophy 的分業として position 付けで対応
+- 弱点 2: ast-outline 思想の浸透リスク → 「we are not a code agent search」明示で domain 区切り
+- 弱点 3: 初回 2.2GB ダウンロード → Phase 2 で `--lite` mode 候補
+
+**Phase 3 #6 chunking 戦略への apply**: AST chunking 直接導入は不適合、Markdown heading 単位 chunking → 後追いで code namespace 向け AST chunking の 2 段階が筋。ast-outline 試用はまだ早い、Phase 3 で再検討。
+
+**playable-gate 通過の鍵**: 実数表ではなく「我々は何を引き受けて、何を引き受けないか」を率直に書く（stash の 50 行 README に学ぶ）。anti_patterns カテゴリ 4 違反（機能羅列）回避が最優先。
+
+next: "How it performs" v2 を本分析を素材に再 draft → playable-gate 再評価
