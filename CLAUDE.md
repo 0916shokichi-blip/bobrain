@@ -79,7 +79,7 @@
 4. ~~LP の `pipx install bobrain` 切替~~ → **完了 (2026-04-27)**: `docs/index.html:880` と `README.md:36-43` の git+https 形式を `pipx install bobrain` / `uvx bobrain` に置き換え済み
 5. ~~LP デプロイ~~ → **完了**（GitHub Pages 公開済み: <https://0916shokichi-blip.github.io/bobrain/>、4/26）
 6. ~~共通フッター規格 (N=1) 適用~~ → **完了 (2026-04-28)**: README.md と docs/index.html の footer を `bob_persona.md` の共通フッター規格に揃えた。Avatar by Nano Banana Pro の理由付き disclosure + `1 of 8 tools` クロスリンク（暫定 link 先 = GitHub プロフィール、bob-universe デプロイ後に bob_persona.md 1 箇所更新で全アプリ伝播）
-7. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿**（月曜火曜の米東部 6-8AM = 日本時間月曜夜 19-21 時、初動 90 分は Q&A に張り付き、`.launch-drafts/show-hn-draft.md` v3 が Gamma 通過済み）
+7. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿** → 投稿前の最終ゲート + 投稿後の if-then は本ファイル「**Show HN 投稿の判断ロジック**」参照（後段）
 
 ### Phase 3 #4（決済）の方針確定（2026-04-26 統合計画より）
 
@@ -101,6 +101,102 @@
 - 横断検索: `uv run bobrain search "クエリ" -k 5 [--ns A --ns B]`
 - repo metadata: `gh repo edit 0916shokichi-blip/bobrain --description ... --add-topic ...`
 - author 再 rewrite（必要時）: `uvx git-filter-repo --mailmap mailmap.txt --force` の後 origin 再追加 + `git push --force-with-lease`
+
+## Show HN 投稿の判断ロジック
+
+bobrain Show HN（および r/LocalLLaMA / r/ObsidianMD）投稿時の if-then 判断ロジック。memory `showhn_launch_benchmarks_2026.md` の定量基準 + `vibe_maintainer_disclosure.md` の開示型 4 分類 + bobrain L0 anti_patterns を bobrain 固有の状況に落とし込んだ運用ルール。**transcribe-bird など他 OSS の Show HN にもそのまま再利用可**（本セクションをコピーして project 固有値だけ書き換える）。
+
+### 投稿前の最終ゲート（D-1 〜 D-0、全部満たさないと投稿しない）
+
+- [ ] `.launch-drafts/show-hn-draft.md` 最新版が `/playable-gate bobrain --target .launch-drafts/show-hn-draft.md` で **anti_patterns 該当なし** + Gamma 平凡化攻撃 通過（v3 は通過済み 2026-04-28）
+- [ ] **「How it performs」セクション（実数表）も別 target で playable-gate 通過済み**。hero copy には機能羅列を入れない、数値は専用セクションに分離（**anti_patterns カテゴリ 4「機能比較表の数値だけで競合に勝とうとする」直撃回避**、memory `showhn_launch_benchmarks_2026.md` DR 提案 D-7 却下事例参照）
+- [ ] Social Preview 画像 (`assets/og.png`) GitHub repo settings で upload 済み（**user 操作必要**）
+- [ ] 15 秒デモ GIF が docs/index.html / README に挿入済み、Vault 名はダミー化済み
+- [ ] 共通フッター規格（N=1、`bob_persona.md` の規格）の Avatar by Nano Banana Pro 理由付き disclosure が docs/index.html と README 両方に揃っている
+- [ ] 英文コピーは `humanizer-ja` 通過済み（スタイロメトリー対策）
+- [ ] PyPI（`bobrain 0.1.0`）で `pipx install bobrain` / `uvx bobrain` が動く最終確認
+- [ ] MCP Inspector で MCP プロトコル準拠最終検証
+- [ ] 投稿先別タイトル候補 3 案を準備（HN / r/LocalLLaMA / r/ObsidianMD で訴求軸が違う、後述）
+
+### 開示型の選択（bobrain は Architecture-led + Feature-limited ハイブリッド）
+
+memory `vibe_maintainer_disclosure.md` 参照。bobrain への適用:
+
+- **採用**: 「AI を全能の神」ではなく「特定 architecture boundary（ローカルファースト RAG MCP）に閉じ込めた制御された力」として描く。BrightBean 型の transparency post-mortem 要素も部分採用 OK
+- **禁止表現**:
+  - 「3 週間で作った」「バイブ・コーディングで爆速」→ 一部には魔法、シニアエンジニアには技術負債赤信号
+  - 「全部 Claude Code でやった」→ AI スロップ判定リスク
+- **README / hero copy** は体験文（「探している答えは、何年か前のあなたが、もう書いている」）を維持、機能羅列は「How it performs」など別セクションに分離
+
+### 投稿時刻
+
+**月曜 PT 朝（= 日本時間月曜夜 19-21 時）**。投稿後 90 分は Q&A 張り付き必須。火曜も可だが月曜優先。
+
+### 投稿先別の訴求軸
+
+| 媒体 | タイトル軸 | 本文の前置き |
+|---|---|---|
+| Show HN | 制約 vs 成果（"Show HN: Bobrain – Local RAG MCP for Obsidian + your repos in one query"） | 機能 → install → 1 例 → roadmap、最後に "by ぼぶ" + 1 行 |
+| r/LocalLLaMA | ローカル完結 / プライバシー（HN 20pts 超えてから投稿）| 1 段落で「ローカルで動く」価値 + HN URL で「HN で話題」実績強調 |
+| r/ObsidianMD | Vault 管理自動化（HN で連携質問発生時に投稿）| Obsidian + code repo 横断検索の体験から入る |
+
+### 投稿後の if-then（撤退 vs 倍プッシュ、定量基準で機械的に）
+
+| 経過時間 | 状態 | アクション |
+|---|---|---|
+| 30 分 | Points < 2 | **撤退**: 削除 + タイトル修正 + 翌週再投稿検討（front page 浮上絶望、HN ランキング式で復活困難） |
+| 30 分 | Points 2-5 | **継続**: コメント返信張り付き、平均 15 分以内に全質問返信。"Thanks!" 短文は順位維持に寄与しない、**技術詳細を語る返信で批判をファンに変える** |
+| 1 時間 | Points < 5 | **撤退寄り**: コミュニティ信頼最低ライン未達、削除を検討（コメント率次第で粘る判断もあり） |
+| 1 時間 | Points 5-10 | **継続 + r/ObsidianMD 準備**: HN で Vault 連携質問が出たら r/ObsidianMD（Vault 管理自動化軸）に投稿 |
+| 1-3 時間 | Points 10-20 | **継続 + r/LocalLLaMA 準備**: front page 入りライン、20pts 超えたら r/LocalLLaMA（ローカル完結軸）投稿準備 |
+| 任意 | Points 20+ | **r/LocalLLaMA 倍プッシュ発火**: HN URL を含めて「HN で話題」実績強調 |
+| 任意 | front page 入り | **X 倍プッシュ**: 「HN で話題」実績付きで X BuildInPublic 投稿、ハッシュタグは中立、所感は B モードで人格を出す |
+| 24 時間後 | front page 残存 | **Lobsters 投稿**（技術詳細軸） |
+| 48 時間後 | 安定 | **dev.to 投稿**（チュートリアル形式） |
+| 任意 | Comment 率 < 20% | **ボット疑い警戒**: 手動 Penalty リスク、コメントを誘発する返信戦略に切り替え |
+| 任意 | `[flagged]` / 灰色表示 | **shadowban 検出**: HN Algolia でドメイン検索 → 新着即時表示確認。別 IP で Newest 順位観察。復旧は hn@ycombinator.com に誠実なメール（Second Chance Pool 掲載依頼可、memory `showhn_launch_benchmarks_2026.md`）|
+
+### Star 獲得層の閾値（投稿後の期待値、撤退判断の参考）
+
+memory `showhn_launch_benchmarks_2026.md` 参照:
+
+- Star 1000+: front page 12h 以上 + 累積 100pts 以上（「圧倒的な効率化」の数値提示が条件）
+- Star 500+: front page 6-10h + 50-80pts
+- Star 100+: front page 3-5h + 20-40pts
+- 二次拡散: 投稿 48h-7d で Awesome リスト / 個人ブログ経由で Star 純増（Context Mode は 228 件純増）
+
+### 撤退判断のメンタル
+
+- bobrain Show HN は **何度でも再投稿できる** 前提（HN ガイドラインで「Second Show HN」許容）
+- 30 分 < 2pts で削除しても次週投稿でやり直せる、**撤退コストは低い**
+- 1 回目で front page 行かなくても、二次拡散（Awesome リスト掲載）で Star 100 ライン到達は可能
+- 削除判断は感情で決めない、**上記定量基準で機械的に**
+- 投稿後 90 分の Q&A で疲れて感情判断が出やすいので、**判断は本セクションの表を見ながら行う**
+
+### 投稿後の運用衛生規則（公開後 PR 受付時）
+
+memory `vibe_maintainer_disclosure.md` 参照、bobrain で PR を受け始めたら適用:
+
+- **プロジェクト間汚染防止**: 「bobrain は他プロジェクトを知らない」を維持
+- **Zero Framework Cognition**: コアロジックを高レベル FW に依存させない
+- **プラグイン優先**: コア追加を避けて integration / extension で対応
+- **One concern per PR**: 機械的トリアージのため
+- **ドラフト禁止**
+- **「エージェントが作ったものはエージェントが直す」**: 数千行の AI 生成 PR を人間が全部読む前提を捨てる
+
+### 鮮度注意
+
+memory `showhn_launch_benchmarks_2026.md` の数値は 2026-04 時点 DR 由来。6 ヶ月で HN コミュニティの空気は変わる。**2026 年 10 月以降に再利用する場合は本判断ロジックの妥当性を再検証**してから適用する。特に「Vibe Coded」受容性は変動の可能性大。
+
+### 関連 memory / ファイル
+
+- memory `showhn_launch_benchmarks_2026.md` — 定量ベンチマーク（撤退ライン / 倍プッシュ閾値 / Star 閾値 / DR 提案 D-7 却下事例）
+- memory `vibe_maintainer_disclosure.md` — 開示型 4 分類 + Survival Ratio README 設計レンズ + Vibe Maintainer 衛生規則
+- memory `bobrain_pypi_launch.md` — PyPI 公開フェーズ地雷（投稿前段階、token 履歴漏洩 / クリップボード汚染 / PEP 639 等）
+- memory `pii_anonymity_recovery.md` — 匿名運用の予防 / 復旧手順
+- `.launch-drafts/show-hn-draft.md` v3 — Gamma 通過済み投稿文 draft
+- `.agents/director/anti_patterns.md` — bobrain L0 平凡化シグナル 6 カテゴリ
+- `docs/research/showhn-strategy-2026-04-29.md` — DR 整形版（Gamma 却下事例の詳細）
 
 ## Dispatch（スマホ）から進める時の境界
 
@@ -129,6 +225,46 @@ Mac 不在中に Dispatch 経由で bobrain を進める場合の可否境界。
 **運用ヒント**: Dispatch で「PyPI 公開やっといて」「Show HN 投げといて」は不可。「PyPI 公開のための README/CHANGELOG 整備」「Show HN 投稿文 v4 を humanizer-ja 通して `.launch-drafts/` に置いといて」のように **準備系に分解** して投げる。
 
 ---
+
+## Phase B 完走（2026-04-30、アプリツリー wiki `log.md` 6 decide エントリ参照）
+
+5 観点診断 + 改造方針確定。**設計禁則 3「罪悪感強要」構造的回避済み**（CLI ツールの応答構造、philosophy-chat の hard constraint 4 件のような対応不要）。bob-survivor と同じ構造的回避パターン。
+
+### Phase B 改造計画（採用要素 4 件追加 + 5 強化、優先順位 1-4）
+
+- 🔲 **要素 9 真実 / 代償の取引 = Pro 版課金**（最優先、重さ補強の物質化）
+  - `bobrain init --ide=<claude-code|cursor|claude-desktop>` セットアップウィザード v0.2.0（CLAUDE.md L82 既定）
+  - philosophy-chat の 1,200 円課金と同型構造、月額 or 買い切りはマネタイズ wiki 戦略との整合で別途判断
+  - anti_patterns カテゴリ 9 逆向き警戒: Pro 版で機能短縮ではなく「ローカルでより便利になる」方向のみ（カテゴリ 3 整合）
+- 🔲 **要素 10 キャラのメタ認知 = L1 行為の記憶**（底知れなさ ◎ 達成）
+  - Bob が起動回数 / 過去質問パターンを言及（「あなたが昔よく検索したフレーズ」を起動時に表示）
+  - 検索結果末尾に「あなたが N 日前にこの言葉で検索しました」を微表示
+  - 「不在で語る」原則準拠（meta_cognition_design L33「私はあなたが書かなかった日のことは知らない」推奨）= 監視されている感を出さない
+  - anti_patterns カテゴリ 4「便利ツール化」逆向き警戒: L1 演出は「再発見の余地」を強調する文脈で、便利機能としてではない
+- 🔲 **要素 12 環境ストーリーテリング強化 + "How it performs" 再 draft 統合**（_whats-next.md 🟡 と統合、静謐 ◯ 達成 + 平凡化回避）
+  - playable-gate 却下中の "How it performs draft v1"（commit `1b890f6`）を「数値ではなく余白で語る」形に再設計
+  - DR 提案「実数表型訴求」業界標準テンプレ化との整合（memory `showhn_launch_benchmarks_2026.md` 却下事例参照）
+  - **anti_patterns カテゴリ 4「機能比較表の数値だけで競合に勝とうとする」直撃回避** が必須
+  - hero copy 「探している答えは、何年か前のあなたが、もう書いている」(L20) を維持、How it performs は専用セクションに分離
+- 🔲 **要素 5 強化 キャラ行動パターン**（既部分実装の細部補強、温度 ◎ 維持）
+  - Bob が CLI 出力末尾でサイン的なフッター（無言の演出のみ、anti_patterns カテゴリ 5「ぼぶ人格の侵襲過剰」整合）
+  - `bobrain search` の応答末尾に Bob の絵文字 / アスキーアート 1 行など、モード A 維持で滲ませる
+- 🔲 **検査経路の運用化**: 改造のたびに `/playable-gate bobrain [--target <変更箇所>]` で L4 関門通す（L0 Taste Layer 既整備、AgentCouncil ループ運用実証あり）
+
+### 不採用 / 適用外要素（Phase B 観点 5 で確定、CLI ツール / RAG サーバーの性質）
+
+- 要素 2 セマンティック・リフレクション: CLI 名 / コマンド名は標準的、改造で追加余地は薄い（自然な命名を破壊するリスク）
+- 要素 3, 4, 6, 7, 8: ゲーム要素ではないため適用外
+- 要素 11 音響モチーフ: CLI ツール、音響演出文脈外
+
+### 匂い変化予測（Phase A スナップショット → Phase B 改造後）
+
+- 重さ: △ → ◯ （要素 1 強実装 + 要素 9 課金で代償物質化、CLI 性質上 ◎ 達成は困難）
+- 底知れなさ: ◯ → ◎ （要素 10 L1 行為の記憶 + 不在で語る演出）
+- 温度: ◎ → ◎ （Bob キャラ + 共通フッター規格維持）
+- 静謐: 未確定 → ◯ （CLI 出力の余白）
+- 不穏: × → △ （L1 行為の記憶で「気配」最小演出）
+- 匂い総合: 中（スナップショット）→ **強**（Phase B 改造後）= philosophy-chat と並ぶ匂い ◎ 達成
 
 ## L0 Taste Layer（評価関数の正本）
 
