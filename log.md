@@ -203,3 +203,27 @@ github-trending-radar W18 synthesize（commit `2236bc6`）で発見した bobrai
 **playable-gate 通過の鍵**: 実数表ではなく「我々は何を引き受けて、何を引き受けないか」を率直に書く（stash の 50 行 README に学ぶ）。anti_patterns カテゴリ 4 違反（機能羅列）回避が最優先。
 
 next: "How it performs" v2 を本分析を素材に再 draft → playable-gate 再評価
+
+## [2026-05-01] decide | 中盤訴求セクション廃案（v1/v2 二重 Gamma 却下、案 A 採用）
+
+**判定**: README に「How it performs」「What this is, and what it isn't」相当の中盤訴求セクションを **置かない方針確定**。
+
+**経緯**:
+- v1（実数表型「How it performs」、commit `1b890f6`）: anti_patterns カテゴリ 4「機能比較表の数値競争」直撃 + DR 提案 D-7「実数表型訴求」業界標準テンプレ吸引で却下
+- v2（境界線型「What this is, and what it isn't」、本セッション draft）: OSS positioning README テンプレ吸引 + 競合 4 件名指し（KiwiFS / Stash / ast-outline / your editor's LSP）が anti_patterns カテゴリ 2「既存プロダクトと並べて訴付」構造的該当（否定形でも認知上は並列化、memory `prompt_inlet_design`）+ 機能列挙 8 割 + 体験 2 行のみでカテゴリ 4 該当
+- Gamma 反対案「体験スケッチ 2-3 個を冒頭に並べる」は L0 vision「直接書かない」原則違反方向（カテゴリ 1 越境リスク）= memory `gamma_l0_check.md` 適用で不採用
+
+**判断軸**: v1/v2 両方が **別形態の業界平均値テンプレに吸引された** 二重事例 = 中盤訴求セクション自体が業界平均値という Gamma 二重判定。memory `usage_zero_root_cause` 適用で「セクション自体が要らない」が最も価値の高い判断。
+
+**採用方針 (案 A)**:
+- README は機能説明 + hero「探している答えは、何年か前のあなたが、もう書いている」(L20) + footer "by ぼぶ" 1 行で完結
+- L0 vision「LP/README/narration では核を直接書かない、機能説明に徹する」原則と最大整合
+- v1（commit `1b890f6` retain）+ v2（本 commit で `.launch-drafts/readme-performance-draft-v2.md` retain）は廃案資料として保管、再利用しない
+
+**CLAUDE.md 更新**:
+- L82「How it performs セクション要件」を ☑ 化、廃案理由を明記
+- Phase B 改造計画 要素 12「環境ストーリーテリング強化 + How it performs 再 draft」を ❌ 化（廃案）
+
+**memory 蒸留**: `showhn_launch_benchmarks_2026.md` に「中盤訴求セクション業界テンプレ吸引」事例追記（v1/v2 二重 Gamma 却下 = OSS Show HN README で「How it performs」「What this is and what it isn't」を置く時の警戒テンプレ）
+
+next: Show HN 投稿前の残タスク = GIF 撮影（user 操作）+ Social Preview 画像 upload（user 操作）+ Show HN 投稿コピー本体 v3 が `/playable-gate` 通過済みの確認（commit `1b890f6` 以前の v3 = 投稿コピー本体は別 target、本 decide は中盤セクションの廃案のみ）
