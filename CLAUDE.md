@@ -300,3 +300,11 @@ Python 3.12 + uv + mcp (FastMCP) + lancedb + fastembed + rank-bm25 + typer + pym
 
 ---
 _2026-04-26 に `~/.claude/.../memory/bobrain_project.md` から移行_
+
+## Phase C 完了（2026-05-01、強度 4 完走 + 主軸/別軸 2 階層化）
+
+- **本アプリの分類**: **主軸**（マネタイズ並走 + 改造対象 or 中核アプリ）
+- **強度判定**: 強度 4 完走（8 アプリ全部維持、骨格 1「8 アプリ = 面の 8 つの角度」維持）
+- **3 ヶ月後再判定弁**: 2026-08-01 目安で強度 4 完走継続 vs 強度 3 落としを再評価
+- **次アクション**: Phase 2 改造 + ローンチ並走（人間タスク依存あり）
+- **詳細**: アプリツリー wiki `log.md` `[2026-05-01] decide` Phase C エントリ + memory `phase_c_judgment_materials.md` §8 + memory `app_tree_restructure_strength4.md` L480+
