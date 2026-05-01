@@ -250,3 +250,25 @@ next: Show HN 投稿前の残タスク = GIF 撮影（user 操作）+ Social Pre
 **playable-gate 再評価**: 不要と判断（v3 通過済みコピーへの文体微調整、構造 / 訴求 / 競合言及方針は維持、Gamma 評価軸での平凡化リスク変化なし）
 
 next: bobrain Show HN 投稿前 Claude 単独タスクは **完了**。残りは全て user 操作（GIF 撮影 + Social Preview 画像 upload + PyPI 動作再確認 + 投稿実行月曜火曜夜 19-21 時 JST）
+
+## [2026-05-01] gate | 投稿前の最終ゲート 5 項目を Claude 単独で検証 → 全パス
+
+**経緯**: startup hook の whats-next が「v2 draft → playable-gate 再評価」を一押しに挙げていたが、`/board` Step 0c の進捗確認で **commit `063d314` で既に v2 廃案判定 + 案 A（中盤訴求セクション置かない）確定済み**を発見。重複作業回避（memory `avoid_duplicate_session_work`）で gate 実行を中止し、CLAUDE.md「投稿前の最終ゲート」残項目から Claude 単独で進められる 5 項目を直列検証。
+
+**検証結果（CLAUDE.md L111-119、5 項目すべて [x] 化）**:
+
+1. **playable-gate v3 通過確認** (L111): commit 履歴で 2026-04-28 通過済み + v1/v2 中盤セクションは廃案、show-hn-final が最終
+2. **共通フッター規格揃い** (L115): docs/index.html / README.md 両方で `Made by Bob — Avatar by Nano Banana Pro` + N=1 表記。日版は意訳採用（CLAUDE.md L82 既揃い記録と整合）
+3. **humanizer-ja 翻案** (L116): commit `177f3e1` で 3 媒体適用済（em dash 7 件修正、構造維持）
+4. **PyPI + uvx 動作** (L117): `uvx --from bobrain==0.1.0 bobrain --help` 正常、4 commands (index/search/watch/serve) 表示、メタデータ整合（author=ぼぶ / MIT / Homepage URLs 揃い）。pipx 未検証（本機未インストール、同一 wheel 想定で代替）
+5. **MCP プロトコル準拠** (L118): stdio 経由 initialize → protocolVersion `2024-11-05` 一致、tools/list → `search_docs` 1 個 + inputSchema 整合。⚠️ 軽微: serverInfo.version が FastMCP default `1.27.0`（v0.2.0 改善候補）
+6. **投稿先別タイトル 3 案** (L119): show-hn-final.md / reddit-localllama.md / reddit-obsidianmd.md で 5/1 06:03〜06:04 に揃い済（commit `177f3e1` 配下）
+
+**残タスク（user 操作領域、Claude 単独不可）**:
+- ⏳ Social Preview 画像 (`assets/og.png`) GitHub repo settings から upload（GUI）
+- ⏳ 15 秒デモ GIF 撮影 + docs/index.html / README に挿入（macOS GUI + Claude Desktop 実演）
+- ⏳ Show HN / Reddit 実投稿（月曜夜 19-21 時 JST タイミング合わせ）
+
+**学び**: startup hook の whats-next は前回セッション終了時点のスナップショット。本セッション以前の作業（dispatch / 別ターミナル / 直前 cowork）が反映されていない。`/board` Step 0c の dispatch-recent-progress + log.md 末尾精読が startup hook の盲信を防ぐ最低ライン（memory `avoid_duplicate_session_work` 適用）。
+
+next: bobrain Show HN 投稿前 Claude 単独タスク **完了確認済**（前回 humanize commit の next: と一致）。次セッションも残タスクは user 操作のみで、Claude は Q&A 補助 / 投稿後対応に回る
