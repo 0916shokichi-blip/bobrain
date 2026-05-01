@@ -272,3 +272,17 @@ next: bobrain Show HN 投稿前 Claude 単独タスクは **完了**。残りは
 **学び**: startup hook の whats-next は前回セッション終了時点のスナップショット。本セッション以前の作業（dispatch / 別ターミナル / 直前 cowork）が反映されていない。`/board` Step 0c の dispatch-recent-progress + log.md 末尾精読が startup hook の盲信を防ぐ最低ライン（memory `avoid_duplicate_session_work` 適用）。
 
 next: bobrain Show HN 投稿前 Claude 単独タスク **完了確認済**（前回 humanize commit の next: と一致）。次セッションも残タスクは user 操作のみで、Claude は Q&A 補助 / 投稿後対応に回る
+
+## [2026-05-01] local | origin push 完了（8 commits、Show HN 投稿前準備の Claude 単独タスク全完了 + N=1 教訓）
+
+**push 結果**: `cb4328a..fbc5fea` = 8 commits 反映、ahead/behind 解消（`## main...origin/main`）。push された内容は Pro 機能設計提案 (v0.2.0) / 競合分析 W18 / 中盤訴求セクション v1+v2 廃案決定 / 投稿前最終ゲート 5 項目検証 / humanizer-ja 翻案 / Show HN 運用 DR 整理 等、Show HN 投稿前段階の作業集積。
+
+**残タスク（user 操作領域、Claude 単独不可）**:
+
+- ⏳ 15 秒デモ GIF 撮影（macOS GUI + Claude Desktop 実演）
+- ⏳ Social Preview 画像 (`assets/og.png`) GitHub repo settings から upload（GUI）
+- ⏳ 月曜火曜夜 19-21 時 JST に Show HN / r/LocalLLaMA / r/ObsidianMD 実投稿（前段の最終ゲート 5 項目すべてパス済）
+
+**N=1 教訓（user 案内コマンドの cwd 込み記述）**: 本セッション末で push を user に投げる時「`! git push origin main`」とだけ案内したため、cwd `~/` のまま実行されて `'origin' does not appear to be a git repository` エラー。「`! cd ~/projects/bobrain && git push origin main`」と cd 込みで再案内して成功（`cb4328a..fbc5fea`）。**push / commit など cwd 依存コマンドを user に投げる時は `cd <project> && ...` を必ず含める**。再発時に memory 化検討、本回は usage_zero_root_cause 適用で N=1 のみ記録。
+
+next: Show HN 投稿は user 領域、Claude は Q&A 補助 / 投稿後対応に回る（前回 gate `bce2ac4` の next: と一致、push で物理的に到達）
