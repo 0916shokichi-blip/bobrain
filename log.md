@@ -286,3 +286,79 @@ next: bobrain Show HN 投稿前 Claude 単独タスク **完了確認済**（前
 **N=1 教訓（user 案内コマンドの cwd 込み記述）**: 本セッション末で push を user に投げる時「`! git push origin main`」とだけ案内したため、cwd `~/` のまま実行されて `'origin' does not appear to be a git repository` エラー。「`! cd ~/projects/bobrain && git push origin main`」と cd 込みで再案内して成功（`cb4328a..fbc5fea`）。**push / commit など cwd 依存コマンドを user に投げる時は `cd <project> && ...` を必ず含める**。再発時に memory 化検討、本回は usage_zero_root_cause 適用で N=1 のみ記録。
 
 next: Show HN 投稿は user 領域、Claude は Q&A 補助 / 投稿後対応に回る（前回 gate `bce2ac4` の next: と一致、push で物理的に到達）
+
+## [2026-05-05] feat | 複数ルート一括 index 実装 (branch feat/multi-root-index)
+
+- **対象**: Phase 2 候補 #3「`bobrain index` 複数ルート一括指定（cold start 15-30 秒）」（CLAUDE.md L46）
+- **branch**: `feat/multi-root-index`（main から派生、feat/bobrainignore とは独立。両方 main 凍結維持）
+- **仕様**:
+  - CLI `bobrain index PATH [PATH ...]` で複数 dir を 1 コールで指定可能
+  - 共通 namespace に集約、embedding model の cold start を 1 回に圧縮（M ルート × 15-30s → 1 × 15-30s）
+  - 重複ファイルは absolute path で dedupe（`~/notes` と `~/notes/sub` を両方渡しても 1 回処理）
+  - 既存 `build_index(root, ...)` API は内部で `build_index_multi([root], ...)` に委譲、後方互換維持
+  - watcher は単一 root のまま（責務違うので不変）
+- **触ったファイル**:
+  - `src/bobrain/indexer.py`: `build_chunks_multi` / `build_index_multi` 追加、既存 `build_chunks` / `build_index` を thin wrapper 化、`Sequence` import
+  - `src/bobrain/cli.py`: `paths: list[Path]` positional に変更、`build_index_multi` 呼び出しに切替、出力に `from N root(s)` 追加
+  - `tests/test_indexer.py`: +3 cases（複数ルート集約 / 重複ルート dedupe / 空 list 安全）
+- **テスト**: `uv run python -m pytest -q` で **19 passed**（既存 16 + 新規 3）。embedding 不要なテスト構造を維持
+- **触っていない**: README.md / docs/ / .launch-drafts/ / CLAUDE.md / pyproject.toml（投稿前凍結維持）
+- **未対応 (将来)**: namespace 別の複数ルート（現状は全部同一 namespace に集約）/ ルート単位の `--exclude` 個別指定
+
+next: 投稿後 Phase 2 改造再開時に PR / merge 判断（feat/multi-root-index branch retain、push しない）
+
+## [2026-05-05] session wrap | Show HN Q&A 弾薬整備 + 投稿前凍結再確認
+
+**やったこと**:
+- `~/Documents/アプリツリー` / `~/Documents/マネタイズ` 未 push 7 件を機密スキャン後 user に push 案内、両 push 完了（私室領域に踏み込まず）
+- `~/projects/bobrain/launch/qa-arsenal.md` 新規作成（untracked、12 セクション、投稿当夜の張り付き運用ガイド）
+- 投稿テキスト 3 媒体（show-hn-final / reddit-localllama / reddit-obsidianmd）最終再読 → 微調整候補なし判定
+- `.launch-drafts/readme-privacy-draft.md` が今日既に整備済を発見（whats-next の 🟡 タスク事実上完了、新規作成回避）
+
+**決定**:
+- Q&A 弾薬は「論点 + 核ワード + 禁止表現」で構成、応答テンプレ完成形は書かない（理由: DR が Show HN Q&A テンプレを作ると親切ヘルパーに滑る N=1 教訓 2026-05-01 + bob_persona 整合）
+- 投稿テキスト 3 媒体は微調整なしで凍結維持（理由: playable-gate v3 + humanizer-ja 翻案 commit `177f3e1` で既に最適化済、再走は過剰修正で逆に AI ぽくなるリスク）
+- `.launch-drafts/readme-privacy-draft.md` は新規作成しない（理由: 別セッションで先回り済、`avoid_duplicate_session_work` 適用）
+- `launch/qa-arsenal.md` は untracked のまま維持（理由: whats-next 地雷 #1「投稿前の凍結状態を維持。投稿後に commit」）
+
+**未解決 / punt**:
+- src/bobrain/cli.py / indexer.py / tests/test_indexer.py の未 commit 3 件 (94 insertions/8 deletions) を投稿前にどう扱うか — user 判断待ち（commit / stash / 投稿後対応）
+- 18:30-19:00 の投稿可否最終確認 — user 領域
+
+**地雷**:
+- 🟡 bobrain 未 commit 3 件は私が触らず（別セッション差分、投稿前凍結状態の境界が user 判断で確定）
+- 🟡 投稿後 24h の README プライバシー section commit (`readme-privacy-draft.md` 採用) を忘れると Q&A Q3「100% local 本当か」の自己検証誘導が片肺、qa-arsenal.md Q3 と連動済
+
+**次の 1 タスク**: 投稿当夜（5/5 19-21 JST）の張り付き — `launch/qa-arsenal.md` を別ペインで開き、Q&A draft を Dispatch 提示
+
+next: 投稿後 90 分の張り付き完了後に Q&A 実例（実際に来た質問 / 自分の応答）を log.md に追記、qa-arsenal.md v2 整備材料にする
+
+## [2026-05-07] freeze | Show HN 投稿延期 + user 駆動モード移行（期限なし運用）
+
+**事実関係**:
+- 5/5 19-21 JST の投稿枠は実施されず（user 申告、5/5-7 で Show HN / r/LocalLLaMA / r/ObsidianMD いずれも未投稿）
+- bobrain log.md は 5/5 wrap 以降、本エントリまで沈黙（1.5 日）
+
+**user 状況の前提変更（2026-05-07 user 明示指示）**:
+- user は大学 4 年生、水上スキー部、引退 = **2026-09 初週インカレ後**（memory `user_profile_university_waterski`）
+- 部活・遠征・大会で作業時間が読めない = 「いつまでに投稿」「次の投稿枠 5/8 火」「窓の終端」のような期限フレームを Claude 側からかけない（memory `feedback_no_deadline_planning`）
+- 引退まで user 駆動・時間取れた時に進めるスタイル
+
+**凍結する物**:
+- `.launch-drafts/show-hn-final.md` / `reddit-localllama.md` / `reddit-obsidianmd.md` — 投稿テキスト 3 媒体、playable-gate v3 + humanizer-ja 翻案 commit `177f3e1` で最適化済、再走しない（過剰修正で AI ぽくなるリスク）
+- `.launch-drafts/readme-privacy-draft.md` — README 統合 commit は user が投稿実施を決めた時に着手
+- `launch/qa-arsenal.md` / `.launch-drafts/qa-arsenal.md` — untracked のまま投稿実施まで保持
+- `feat/multi-root-index` branch（19 tests pass）+ `feat/bobrainignore` branch — main 凍結維持、PR / merge は user 駆動
+
+**次に bobrain に時間取った時に最初にやること**:
+1. `cat ~/projects/bobrain/log.md` で本エントリ確認 + `git log --oneline -10` で差分確認
+2. user に投稿実施意思を確認（Claude から「投稿しましょう」と先回り提案しない）
+3. 投稿実施が決まったら: README プライバシー section 統合 commit → 投稿テキスト 3 媒体最終再読 → ship-check or playable-gate 再走判断 → user に投稿案内
+4. 投稿しない判断なら: Phase 2 候補（#5 `.bobrainignore` / #6 heading chunking / #7 CoreML）の改造に進める選択肢
+
+**未統合の差分（5/5 staged を本 commit に同梱）**:
+- 5/5 multi-root-index feat エントリ（branch `feat/multi-root-index`、19 tests pass、main 凍結維持）
+- 5/5 session wrap エントリ（投稿前最終ゲート + Q&A 弾薬整備の判断記録）
+- 上記 2 件と本「投稿延期」エントリを 1 commit にまとめる（投稿前凍結状態 → 投稿延期 への自然な続き）
+
+next: user が時間取れた時に bobrain 再開。bobrain は凍結状態で待機
