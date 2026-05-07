@@ -590,6 +590,16 @@
     flex-shrink: 0;
     object-fit: cover;
   }
+  footer .cross-link {
+    margin-top: 14px;
+    color: var(--fg-mute);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  footer .cross-link a {
+    color: inherit;
+    text-decoration: underline;
+  }
   footer .meta {
     margin-top: 8px;
     font-family: var(--mono);
@@ -658,31 +668,29 @@
 <section class="hero">
   <div class="container hero__inner">
     <div class="hero__copy">
-      <p class="hero__eyebrow">Local-first hybrid RAG · MCP-native · MIT</p>
+      <p class="hero__eyebrow" data-lang="en">An MCP server for your Obsidian vault and your Git repos.</p>
+      <p class="hero__eyebrow" data-lang="ja">Obsidian Vault と Git repo を、ひとつの MCP に繋ぐ。</p>
 
       <h1 data-lang="en">
-        Search your <strong>vault</strong><br/>
-        and your <strong>code</strong>,<br/>
-        with the same query.
+        The answer you're searching for —<br/>
+        you <strong>already wrote it</strong>,<br/>
+        years ago.
       </h1>
       <h1 data-lang="ja">
-        <strong>Obsidian Vault</strong> も<br/>
-        <strong>Git repo</strong> も、<br/>
-        同じ質問で検索する。
+        探している答えは、<br/>
+        何年か前のあなたが、<br/>
+        <strong>もう書いている</strong>。
       </h1>
 
       <p class="hero__sub" data-lang="en">
-        Bobrain is a local-first hybrid RAG (BM25 + e5 embeddings)
-        you wire into Claude / Cursor / Claude Desktop over MCP.
-        Japanese tokenizer ships in the default install.
-        No cloud, no API key, no vendor lock-in.
+        Bobrain indexes your Obsidian vault and your Git repos together, locally.
+        Hybrid BM25 + e5 retrieval, Japanese tokenizer in the default install,
+        MCP-native for Claude / Cursor / Claude Desktop.
       </p>
       <p class="hero__sub" data-lang="ja">
-        Bobrain はローカル完結のハイブリッド RAG（BM25 + e5 embedding）です。
-        Claude / Cursor / Claude Desktop に MCP で繋ぐだけで、
-        ノートとコードを横断検索できます。
-        日本語トークナイザ（MeCab / fugashi）を初期同梱、
-        クラウド不要・API キー不要・ベンダーロックなし。
+        Bobrain は Vault と Git repo をひとつのインデックスに統合します。
+        ハイブリッド BM25 + e5、日本語トークナイザ初期同梱、
+        Claude / Cursor / Claude Desktop に MCP で接続、すべてローカル。
       </p>
 
       <div class="cta-row">
@@ -1111,8 +1119,12 @@ bobrain watch  <span class="cmt"># live sync, ~500ms after save</span></pre>
   <div class="container">
     <p class="by">
       <img class="author-avatar" src="assets/bob-baby.png" alt="ぼぶ" width="28" height="28" />
-      <span data-lang="en">Built by <strong>ぼぶ</strong> — a solo dev who keeps notes and code in the same head, and wanted one search box for both.</span>
-      <span data-lang="ja">作者: <strong>ぼぶ</strong> — ノートもコードも同じ頭で書いている個人開発者。検索窓も 1 つにしたかったので作りました。</span>
+      <span data-lang="en">Made by <strong>Bob</strong> — Avatar by Nano Banana Pro. I don't show my face. The work is the face.</span>
+      <span data-lang="ja">作者: <strong>ぼぶ</strong> — Avatar by Nano Banana Pro。顔ではなく、つくるものを覚えてほしい。</span>
+    </p>
+    <p class="cross-link">
+      <span data-lang="en">This is 1 of 8 tools by Bob. → <a href="https://github.com/0916shokichi-blip">other tools</a></span>
+      <span data-lang="ja">8 つのうち 1 つ。→ <a href="https://github.com/0916shokichi-blip">他のツール</a></span>
     </p>
     <p class="meta">MIT · 0916shokichi-blip / bobrain</p>
   </div>

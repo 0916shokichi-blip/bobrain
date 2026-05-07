@@ -1,0 +1,67 @@
+# Bobrain QDAIF 評価軸
+# AI エージェントが bobrain への機能追加・コピー変更案を評価する際の 4 軸。
+# 各軸は 1-5 のスコアで、weight をかけて合計。閾値未満なら却下 or 再考。
+
+axes:
+  - id: chikou_gouitsu
+    label: 知行合一（行動と認識の統合）
+    description: |
+      ユーザーが要求される「操作」が、bobrain が主張する「思想」を体現しているか。
+      bobrain の場合: 「過去の自己との再会」を、検索 UI の操作で体現できているか。
+      テキストや LP コピーで思想を説明するだけで、検索体験そのものが平凡なら低評価。
+    weight: 1.0
+    examples:
+      high: |
+        Vault と repo の検索結果が同じ画面に並列表示され、ユーザーが「過去の自分の言葉」と
+        「自分が書いたコード」が同じクエリで横並びになる体験を直接得られる。
+      low: |
+        「あなたの脳の延長です」と LP に書きつつ、機能は単なる Obsidian 検索の高速版。
+
+  - id: paradigm_shift
+    label: パラダイムシフト（変容的体験）
+    description: |
+      使用前後で、ユーザーの「自分の知識・記憶に対する認識」に不可逆な変化が生じるか。
+      bobrain の場合: 「忘却 = 消失」から「忘却 = 再発見の余地」への認識転換。
+    weight: 1.2
+    examples:
+      high: |
+        ユーザーが「過去の自分が今の悩みに既に答えていた」と自発的に発言する。
+      low: |
+        「便利な検索ツール」「ちょっと速い」程度の感想しか出ない。
+
+  - id: productive_friction
+    label: 生産的な摩擦（Productive Friction）
+    description: |
+      最適化された UI 的利便性ではなく、思想と整合する意味のある抵抗があるか。
+      bobrain の場合: ローカル実行の遅さ、要約しない原則、結果が「手がかり」止まりであること
+      は摩擦だが、それは「外部 API に脳を預けない」「自分の言葉で考える余地」のため。
+    weight: 0.8
+    examples:
+      high: |
+        要約しない（chunk を返すだけ）ことで、ユーザーが自分の言葉で過去の自己と対話する余地が残る。
+      low: |
+        GPT 風の自動要約を入れて、ユーザーが考える前に「答え」を提示してしまう。
+
+  - id: diversity_niche
+    label: QDAIF 多様性（Behavioral Niche Exploration）
+    description: |
+      既存の市場・競合と比較し、新たな行動的ニッチを開拓しているか。
+      平均的な「LLM ベース検索」「Obsidian プラグイン」の確率分布の真ん中に落ちていないか。
+    weight: 1.0
+    examples:
+      high: |
+        Vault と repo の横断、ローカル e5-large + BM25 ハイブリッド、日本語 first
+        の組み合わせは Knowledge-RAG / Claude-Context / Cognee と直接競合せず独自ニッチ。
+      low: |
+        「LangChain で作った RAG」「OpenAI Embedding を使った検索」など、
+        既存スタックの平均値の組み合わせ。
+
+# スコアリングルール
+scoring:
+  threshold_pass: 14    # weight 適用後の合計が 14 未満なら却下
+  threshold_pivot: 18   # 18 以上なら採用候補
+  # 14-18 の中間域は AgentCouncil（特に Gamma）で再評価
+
+# 重要: weight が paradigm_shift > diversity_niche > chikou_gouitsu > productive_friction の順なのは、
+# bobrain では「変容的体験」と「ニッチ独自性」が最も差別化に効くため。
+# productive_friction は哲学的に重要だが、bobrain は CLI ツールのため操作摩擦の表現範囲が狭く weight 低め。

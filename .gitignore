@@ -30,3 +30,7 @@ wheels/
 
 # Claude Code internals (worktrees, scratch)
 .claude/
+
+# Launch material drafts (公開ルート docs/ 配下に置かれた未推敲ドラフトの誤公開を予防)
+# .launch-drafts/ 配下に集約済み (2026-04-28)
+docs/launch/
