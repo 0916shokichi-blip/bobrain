@@ -362,3 +362,54 @@ next: 投稿後 90 分の張り付き完了後に Q&A 実例（実際に来た�
 - 上記 2 件と本「投稿延期」エントリを 1 commit にまとめる（投稿前凍結状態 → 投稿延期 への自然な続き）
 
 next: user が時間取れた時に bobrain 再開。bobrain は凍結状態で待機
+
+## [2026-05-07] correction | 上記 freeze エントリの事実誤認補正（origin/main 進行 + worktree / PR 状況の実態）
+
+**経緯**: 上記 `[2026-05-07] freeze` commit (`8e1e124`、wip/show-hn-freeze-2026-05-05) を打った直後に `git log origin/main` を確認したところ、log に書いた前提が事実と矛盾していることが判明。push してない wip branch なので追記補正。
+
+### 実態（fetch 直後 2026-05-07）
+
+**branch / commit 状況**:
+- `origin/main` = `d6d908f feat: multi-root index + .bobrainignore support (#2)` ← **PR #2 merge 済み**
+- `origin/main^` = `fb43ade Add CI workflow and list_namespaces MCP tool (#1)` ← **PR #1 merge 済み**
+- `local main` = `e7f0c31 docs: Phase C 完了` ← origin/main から見て **ahead 1, behind 2**
+- `feat/multi-root-index` = `05c30ac` ← branch 自体は残ってるが内容は origin/main に PR #2 で取り込まれた
+- `feat/bobrainignore` = `7161459` ← 同上、origin/main に PR #2 で取り込まれた
+- `claude/pdf-chunker` = `0fcc7b4 feat(indexer): PDF チャンカーを追加（pymupdf, ページ単位 + 段落分割）` ← **bobrain log.md / CLAUDE.md に未記録の進行**
+- `claude/cranky-darwin-8146e4` / `funny-jackson-29db97` / `wonderful-zhukovsky-f9e984` = Claude Code worktree 3 件、`e7f0c31` (Phase C) 止まり
+- `pr2-test-merge` = `deaccc6` Merge `origin/claude/bobrainの-continue-gXnE4: gone`（Claude Code Continue 機能の痕跡）
+
+**freeze エントリの事実誤認**:
+- 「`feat/multi-root-index` branch retain、main 凍結維持、PR / merge は user 駆動」 → **誤**: PR #2 で既に origin/main に merge 済み
+- 「未対応の Phase 2 候補 #5 `.bobrainignore`」（CLAUDE.md L43） → **誤**: PR #2 で既に origin/main に merge 済み
+- CI workflow + list_namespaces MCP tool が PR #1 で追加された事実が **bobrain log.md / CLAUDE.md に未記録**
+- PDF チャンカー branch (`claude/pdf-chunker`) も **未記録**
+
+### 何が起きていたか（推定）
+
+- 5/5 以降、Claude Code Continue 機能 / worktree 経由で別経路の作業が進行
+- PR #1 / #2 が GitHub Web UI または Continue 機能経由で merge
+- bobrain log.md は単一 source of truth として機能せず、別経路の作業が記録されない構造的問題
+
+### user が時間取れた時にやるべきこと（凍結を解く時の手順、期限なし）
+
+1. `git fetch && git log origin/main --oneline -10` で実際の origin/main 状態確認
+2. `git log main..origin/main` で behind 2 commits の差分内容確認（PR #1 + PR #2 の実装）
+3. `git log origin/main..main` で ahead 1 commit（Phase C 完了 docs）の内容確認
+4. 統合判断:
+   - (a) `git rebase origin/main` で local main を origin/main にリベース（Phase C docs を後ろに乗せる）
+   - (b) `git merge origin/main` でマージ commit 作って統合
+   - (c) Phase C docs を捨てて `git reset --hard origin/main` で origin に追従（Phase C docs は別 branch / コピペで取り戻せる場合のみ）
+5. CLAUDE.md L37-41「未対応の Phase 2 候補」セクションから #3 multi-root + #5 .bobrainignore を削除（既 merge）→ 残るのは #6 heading chunking + #7 CoreML provider
+6. CLAUDE.md「Phase 0/1/3#1/3#2 で完了したもの」セクションに「Phase 2 完了分: multi-root index (PR #2) + .bobrainignore (PR #2) + CI workflow (PR #1) + list_namespaces MCP tool (PR #1)」を追記
+7. `claude/pdf-chunker` branch の処遇判断（merge / 廃棄 / 保留）
+8. Claude Code worktree 3 件（cranky-darwin / funny-jackson / wonderful-zhukovsky）の処遇判断（残骸ならば削除、用途あれば残す）
+9. wip branch `wip/show-hn-freeze-2026-05-05` の処遇判断（本 freeze + correction 2 commit を main に取り込むか、wip のまま放置か）
+
+### 教訓（次セッション起点でも繰り返さない）
+
+- **bobrain 着手前のチェックリスト追加**: `git status --short` + `git branch -vv` + `git log origin/main --oneline -5` を必ず最初に実行（log.md / CLAUDE.md だけ読むのは不十分）
+- memory `avoid_duplicate_session_work.md` の典型再発: 「startup hook の whats-next 出力 + log.md 末尾だけ見て判断」で別経路作業を見逃した
+- Claude Code Continue 機能 / worktree が動いている repo では、log.md は **単一 source of truth ではない**。GitHub PR / branch / worktree の 3 軸を必ず確認
+
+next: user が時間取れた時に上記「やるべきこと」順で整理。本 correction は wip branch に置いたまま、push しない
