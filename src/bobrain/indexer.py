@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Iterable
 
 import lancedb
+import pathspec
 from fastembed import TextEmbedding
 from fugashi import Tagger
 from rank_bm25 import BM25Okapi
@@ -35,6 +36,8 @@ _EXCLUDE_DIRS = frozenset({
     ".obsidian", ".trash",
 })
 
+IGNORE_FILENAME = ".bobrainignore"
+
 _NOISE_POS = {"助詞", "助動詞", "補助記号", "空白", "記号"}
 _tagger: Tagger | None = None
 
@@ -54,14 +57,54 @@ class Chunk:
     namespace: str
 
 
+def _load_ignore_specs(
+    root: Path, excludes: set[str]
+) -> list[tuple[Path, pathspec.PathSpec]]:
+    """Find every `.bobrainignore` under root and return (anchor_dir, spec) pairs.
+
+    Each spec's anchor_dir is the directory containing the ignore file; patterns
+    are evaluated relative to it (gitignore semantics). Files inside hard-coded
+    excluded directories (`.venv`, `.git`, ...) are never read.
+    """
+    specs: list[tuple[Path, pathspec.PathSpec]] = []
+    for ignore_file in root.rglob(IGNORE_FILENAME):
+        if not ignore_file.is_file():
+            continue
+        if any(part in excludes for part in ignore_file.parts):
+            continue
+        try:
+            lines = ignore_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+        except OSError:
+            continue
+        spec = pathspec.PathSpec.from_lines("gitignore", lines)
+        specs.append((ignore_file.parent, spec))
+    return specs
+
+
+def _is_path_ignored(
+    path: Path, specs: list[tuple[Path, pathspec.PathSpec]]
+) -> bool:
+    for anchor, spec in specs:
+        try:
+            rel = path.relative_to(anchor)
+        except ValueError:
+            continue
+        if spec.match_file(rel.as_posix()):
+            return True
+    return False
+
+
 def iter_markdown(
     root: Path, extra_excludes: Iterable[str] = ()
 ) -> Iterable[Path]:
     excludes = _EXCLUDE_DIRS | set(extra_excludes)
+    specs = _load_ignore_specs(root, excludes)
     for p in root.rglob("*.md"):
         if not p.is_file():
             continue
         if any(part in excludes for part in p.parts):
+            continue
+        if specs and _is_path_ignored(p, specs):
             continue
         yield p
 
@@ -100,11 +143,20 @@ def hash_id(path: str, idx: int, text: str) -> str:
 
 
 def build_chunks(
-    root: Path, namespace: str, extra_excludes: Iterable[str] = ()
+    roots: Path | Iterable[Path],
+    namespace: str,
+    extra_excludes: Iterable[str] = (),
 ) -> list[Chunk]:
+    roots_list = [roots] if isinstance(roots, Path) else list(roots)
     chunks: list[Chunk] = []
-    for p in iter_markdown(root, extra_excludes):
-        chunks.extend(chunks_for_file(p, namespace))
+    seen: set[Path] = set()
+    for root in roots_list:
+        for p in iter_markdown(root, extra_excludes):
+            resolved = p.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            chunks.extend(chunks_for_file(p, namespace))
     return chunks
 
 
@@ -253,14 +305,18 @@ def _escape_sql(value: str) -> str:
 
 
 def build_index(
-    root: Path,
+    roots: Path | Iterable[Path],
     namespace: str,
     data_dir: Path,
     extra_excludes: Iterable[str] = (),
 ) -> int:
-    """Re-index all markdown under `root` for `namespace` (other namespaces untouched)."""
+    """Re-index all markdown under `roots` for `namespace` (other namespaces untouched).
+
+    `roots` may be a single Path or any iterable of Paths; chunks from every
+    root are merged into one batch and the namespace is replaced atomically.
+    """
     with _phase("scan"):
-        chunks = build_chunks(root, namespace, extra_excludes)
+        chunks = build_chunks(roots, namespace, extra_excludes)
     with _phase("embed", n=len(chunks)):
         rows = _chunks_to_rows(chunks)
     with _phase("db-write", n=len(rows)):
