@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="assets/bob.svg" alt="Bob — your pocket second brain" width="120" height="120"/>
+  <img src="assets/bob.svg" alt="Bob" width="120" height="120"/>
   <h1>Bobrain</h1>
-  <p><em>Bob, your pocket second brain.</em></p>
+  <p><em>The answer you're searching for — you already wrote it, years ago.</em></p>
   <p>
     <a href="https://github.com/0916shokichi-blip/bobrain/actions/workflows/ci.yml">
       <img src="https://github.com/0916shokichi-blip/bobrain/actions/workflows/ci.yml/badge.svg" alt="CI"/>
@@ -9,9 +9,11 @@
   </p>
 </div>
 
-A **local-first multi-source RAG MCP server** — search across multiple Obsidian vaults and the Markdown docs in your code repositories from Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
+A **local-first hybrid RAG MCP server** that indexes your Obsidian vault and your Git repos together. Hybrid BM25 + e5 retrieval with a Japanese tokenizer in the default install, MCP-native for Claude, Cursor, Claude Desktop, and any other MCP-compatible client.
 
 > Status: **early prototype**. Markdown-only today; PDF and code-AST chunking are on the roadmap. APIs and storage layout may change.
+
+> Landing page: **<https://0916shokichi-blip.github.io/bobrain/>** — also browsable locally via `python3 -m http.server` from the repo root → `http://localhost:8000/docs/`.
 
 ## What it is
 
@@ -43,6 +45,7 @@ pipx install bobrain
 # Or run a one-shot without installing (uv 0.5+)
 uvx bobrain --help
 ```
+
 
 Or clone and develop locally:
 
@@ -89,6 +92,7 @@ Point your MCP client at the stdio server. If you installed via `pipx`:
   }
 }
 ```
+The `bobrain` command on `PATH` works the same way whether you installed from PyPI or from the git URL above.
 
 Or, from a local clone:
 
@@ -129,3 +133,9 @@ Then from Claude / Cursor / Claude Desktop you can call the MCP tools directly.
 ## License
 
 MIT. See [LICENSE](./LICENSE).
+
+---
+
+Made by **Bob** — Avatar by Nano Banana Pro. I don't show my face. The work is the face.
+
+This is 1 of 8 tools by Bob. → [other tools](https://github.com/0916shokichi-blip)
