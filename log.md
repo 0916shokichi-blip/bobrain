@@ -413,3 +413,39 @@ next: user が時間取れた時に bobrain 再開。bobrain は凍結状態で�
 - Claude Code Continue 機能 / worktree が動いている repo では、log.md は **単一 source of truth ではない**。GitHub PR / branch / worktree の 3 軸を必ず確認
 
 next: user が時間取れた時に上記「やるべきこと」順で整理。本 correction は wip branch に置いたまま、push しない
+
+## [2026-05-07] check | 投稿実施未確認 → 凍結状態維持
+
+- 親 Claude が「5/5-7 で Show HN / r/LocalLLaMA / r/ObsidianMD 投稿実施したか」を user に確認 → **未実施**
+- 上記 `[2026-05-07] correction` エントリの「やるべきこと 9 項目」はそのまま有効、状態凍結維持
+- README プライバシー統合 commit (`.launch-drafts/readme-privacy-draft.md` → `README.md`) は **投稿後の KPI 反映前提で punt**（投稿前に統合する場合「100% local」表現が実 vector store / embedding 挙動の裏付けでしか書けず、誇大広告 NG ガード = memory `safe_vibe_coding_checklist` に抵触する可能性）
+- 次回再開時必須: `git status --short` + `git branch -vv` + `git log origin/main --oneline -5` の 3 軸 + log.md 末尾 = 4 軸チェック（5/7 correction で確立）
+
+next: user が投稿実施を決断した時点で再開、それまで凍結
+
+## [2026-05-08] sync | CLAUDE.md L44-49 + L294-299 に Phase 2 完了事実反映
+
+`[2026-05-07] correction` の「やるべきこと 9 項目」のうち、**投稿判断と独立に進められる事実整理だけ** を切り出して実施。
+
+### 実施内容
+
+- **CLAUDE.md L44-49 「未対応の Phase 2 候補」**: #3 multi-root + #5 `.bobrainignore` を削除（PR #2 で `origin/main` merge 済 = 2026-05-07）。残= #6 heading chunking + #7 CoreML provider の 2 件
+- **CLAUDE.md L294-299 セクション**: 「Phase 0/1/3#1/3#2 で完了したもの」→ **「Phase 0/1/2/3#1/3#2 で完了したもの」** にリネーム + Phase 2 行追加
+  - PR #1 (`fb43ade`, merged 2026-05-07): CI workflow (`.github/workflows/ci.yml`) + `list_namespaces` MCP tool 追加
+  - PR #2 (`d6d908f`, merged 2026-05-07): multi-root index + `.bobrainignore` サポート追加
+- **保持した事実明記**: local main は `e7f0c31` のまま `ahead 1, behind 2`、統合判断（rebase / merge / reset）は user 駆動領域として残す旨を CLAUDE.md に記載
+
+### 手付けず（user 判断領域、9 項目の残）
+
+- 項目 4: local main を origin/main へ統合（rebase / merge / reset の選択）
+- 項目 7: `claude/pdf-chunker` branch (`0fcc7b4`) の処遇判断（merge / 廃棄 / 保留）
+- 項目 8: Claude Code worktree 3 件（cranky-darwin / funny-jackson / wonderful-zhukovsky）の処遇判断
+- 項目 9: wip branch `wip/show-hn-freeze-2026-05-05` の処遇判断（本 sync commit を含めて 3 commit が積まれた状態）
+
+### スコープ理由
+
+- 投稿判断と独立な「事実整理」のみ実施。誇大広告 NG ガード（memory `safe_vibe_coding_checklist`）に触れない
+- README プライバシー統合 commit (`readme-privacy-draft.md` → `README.md`) は punt 維持（5/7 check 判断継続）
+- untracked `.launch-drafts/qa-arsenal.md` / `launch/` / `readme-privacy-draft.md` は freeze エントリの「投稿実施まで untracked 保持」方針に従い stage しない（memory `git_add_dirty_pickup` 限定 stage）
+
+next: 投稿判断は user 駆動で待機、`origin/main` 取り込み判断も user 駆動。本 sync で CLAUDE.md / log.md 整合性は最低限回復
