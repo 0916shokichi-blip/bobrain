@@ -449,3 +449,60 @@ next: user が投稿実施を決断した時点で再開、それまで凍結
 - untracked `.launch-drafts/qa-arsenal.md` / `launch/` / `readme-privacy-draft.md` は freeze エントリの「投稿実施まで untracked 保持」方針に従い stage しない（memory `git_add_dirty_pickup` 限定 stage）
 
 next: 投稿判断は user 駆動で待機、`origin/main` 取り込み判断も user 駆動。本 sync で CLAUDE.md / log.md 整合性は最低限回復
+
+## [2026-05-09] commune | post-launch ロードマップ第3案 (パターン α 採用)
+
+`/commune bobrain post-launch ロードマップの第3案` を実走 (commune skill N=2)。Codex Augmenter との共創で「Bobrain Lab Notebook」道筋が創発。Phase 0 で既存 Show HN 準備 (10+ commits / playable-gate v3 通過 / humanizer-ja 通し済) を取りこぼしていた errata あり、3 統合パターン (α/β/γ) を提示後 user が **パターン α** (Show HN 予定通り + Notebook + Lab Pass は post-Show HN follow-up) を採用。
+
+### 創発された第3案: 「Bobrain Lab Notebook」道筋 (commune 出力)
+
+bobrain を product ではなく lab notebook として位置づけ直す 4 段 compound 設計:
+
+1. **Notebook 連載 (open)**: `docs/lab/` に月 1-2 本、bob_persona が架空シナリオで dogfood する型を記述、PII 回避は fictional persona シナリオで担保
+2. **Lab Pass (closed)**: 「同じ構造を作りたい」発話した読者を $5-10/月で招待、benchmark contributor として匿名 dogfood 結果共有
+3. **Phase 2 残機能 (#6 heading chunking + #7 CoreML) を Notebook 駆動で実装**: 機能追加が連載ネタになる compound
+4. **Show HN / Reddit はパターン α 採用で予定通り進める** (β「punt」は不採用)
+
+### Codex Phase 3b 検証で追加された制約
+
+各 Notebook 記事で「**検索前の問い → bobrain 検索結果 → 過去ログ再発見 → 同じ構造を作りたい発話**」の 4 段階を **固定フォーマット化必須**。これがないと product-fit 指標 (intent signal) が読後感に流れる。
+
+→ `.launch-drafts/lab-notebook-template-draft.md` に固定フォーマット雛形を作成 (untracked、freeze 維持)。
+
+### Phase 4 残る問い 2 個 → Claude が「任せます」を受けて合理的に決定
+
+- **Q1: Notebook 1 本目の題材** → **「8 アプリ tree (面の 8 つの角度)」** に決定
+  - 理由: 構造の再現可能性が最も高い (8 角度 = 即可視化) / 月 1-2 本ペースで連載化しやすい (8 角度 = 自然な目次、半年で 6-8 本) / bob_persona との整合 / PKM パワーユーザーターゲットと整合
+- **Q2: Lab Pass 開始タイミング** → **「3 本完走時に Lab Pass 募集開始」** に決定
+  - 理由: 3 本で連載として成立 / Polar.sh + KYC + W-8BEN 準備期間 (2-3 ヶ月) を確保 / user 熱量持続限界 / Show HN punt 解除の N=10-30 contributor 目標と整合
+
+### パターン α 採用の理由 (β/γ 不採用)
+
+| パターン | 不採用理由 |
+|---|---|
+| β: Show HN punt + Notebook 完全方向転換 | 既存 N=10+ commits + DR + playable-gate v3 通過 + humanizer-ja 通しの投資が sunk cost 化、Show HN タイミングを逃す |
+| γ: Show HN タイトル / SHOWHN.md に Lab Pass 一段組み込み | Show HN ノイズと Lab Pass intent signal が混ざるリスク + 投稿文の Gamma 通過を再検証する必要 |
+| **α: 当初予定 + follow-up** | sunk asset retention / Notebook 連載は post-Show HN なら「Show HN で何が起きたか / どう KPI を読んだか」を最初の題材にできる = bob_persona dogfood に自然な物語性 / Lab Pass の signal 質向上 (Show HN 観客 → KPI 確認 → 「同じ構造を作りたい」濃い intent) |
+
+### 既存ロードマップとの統合 (パターン α)
+
+- **Phase 3 #3 投稿** = **予定通り** (Show HN / r/LocalLLaMA / r/ObsidianMD、CLAUDE.md L189「Show HN 投稿の判断ロジック」セクションをそのまま運用)
+- **post-Show HN follow-up** として:
+  - Show HN KPI 観察結果が出た直後、Notebook 1 本目「8 アプリ tree 1 角度目」を執筆 (KPI を題材に bob_persona dogfood シナリオを描く)
+  - Notebook 3 本完走時に Lab Pass beta 募集開始 (Polar.sh + NAWABARI + GMO 屋号付き口座 + W-8BEN を 2-3 ヶ月で準備)
+- **Phase 2 残 (#6 heading chunking + #7 CoreML)** = **Notebook 駆動で実装** (機能追加が連載ネタになる compound、改造のたびに /playable-gate で L4 関門通す既定継続)
+- **Phase 3 #4 決済** = **Lab Pass の形で先行実装** (Pro 版本格化は Lab Pass の N=1 検証後)
+
+### 状態 (本 entry 記録時点)
+
+- `.launch-drafts/lab-notebook-template-draft.md` 作成 (untracked、commit せず freeze 維持)
+- 本 log.md entry 追加 (unstaged、commit せず freeze 維持)
+- CLAUDE.md L43-44 「How to apply」の Phase 3 ロードマップ更新は punt (user が Show HN 投稿実施 + KPI 観察結果が出た時点で反映、freeze 維持と整合)
+
+### next (Show HN 投稿後に踏む)
+
+user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
+1. 本 log.md entry を commit (unstaged → staged → commit、wip branch 末尾に積む)
+2. `.launch-drafts/lab-notebook-template-draft.md` を `docs/lab/_template.md` 等に昇格して commit
+3. Notebook 1 本目「8 アプリ tree 1 角度目」を起草開始 (post-Show HN の物語性を盛り込む)
+4. CLAUDE.md L43-44 を更新 (Phase 3 #3 完了 + post-launch follow-up = Notebook + Lab Pass 経路)
