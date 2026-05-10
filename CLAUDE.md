@@ -47,6 +47,7 @@
 - ~~#5 `.bobrainignore` ファイルサポート~~ → **完了 (2026-04-28)**: `pathspec` の `gitignore` factory 経由で gitignore 互換。root 直下だけでなくサブディレクトリ配下にも置ける（その配下にだけ効く）。組み込み除外（`.venv` など）は常に勝つ
 - #6 chunking が文字数ベース → Markdown heading 単位 chunking
 - #7 e5-large が CPU で 1.4–2.4 sec/chunk → CoreML provider で 5-10x の余地
+- **#8 auto-sops/ ディレクトリ監視 + Reflection scheduler hook**（2026-05-09 W19 追加）— Photo-agents L3 (`photoagents/skills/`) + L4 (scheduler reflection) 概念移植。Claude Code SessionEnd hook で「成功要因 / コードパターン / 解決手順を SOP 形式で抽出 → `<vault>/auto-sops/YYYY-MM-DD-<topic>.md` へ自動書き込み」を Reflection 化。bobrain は新規 namespace `auto-sops` として index 監視対象に追加 → 次回 Claude Code セッションで過去成功体験が L3 メモリとして検索可能。Phase 2 #6 完成後の積み上げ候補。詳細は memory `agent_memory_layer_architecture.md` 参照
 
 ### ドメインメモ
 
