@@ -34,3 +34,8 @@ wheels/
 # Launch material drafts (公開ルート docs/ 配下に置かれた未推敲ドラフトの誤公開を予防)
 # .launch-drafts/ 配下に集約済み (2026-04-28)
 docs/launch/
+
+# Show HN 投稿準備の draft 領域（公開リポジトリで draft 履歴を残さない方針、2026-05-10）
+# 投稿後に必要なら個別 commit する想定、log.md `qa-arsenal.md`「投稿後 24h で commit 判断」と整合
+.launch-drafts/
+launch/
