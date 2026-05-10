@@ -506,3 +506,31 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 2. `.launch-drafts/lab-notebook-template-draft.md` を `docs/lab/_template.md` 等に昇格して commit
 3. Notebook 1 本目「8 アプリ tree 1 角度目」を起草開始 (post-Show HN の物語性を盛り込む)
 4. CLAUDE.md L43-44 を更新 (Phase 3 #3 完了 + post-launch follow-up = Notebook + Lab Pass 経路)
+
+## 12:52 session wrap (/ast-map + code-reviewer-ja N=1)
+
+**やったこと**: `/ast-map ~/projects/bobrain --save` で `.claude/ast-map.md` (3.9 KB / 11 files) 生成 → code-reviewer-ja subagent に AST マップだけ渡してメタ視座レビュー取得 (生コード未閲覧 = Deep Mapper N=1 実証要件遵守)。bobrain 固有の 6 項目指摘を抽出。
+
+**決定**:
+- /ast-map の target に bobrain を選択（user "やってみて" 発話、target 未指定 → 主プロジェクト + N=1 実走済 + Show HN 直前のタイムリー性）
+- code-reviewer-ja subagent に「読み取りのみ・書き込み禁止・生コード非閲覧」を太字明示で委譲（memory `subagent_scope_explicit_constraint` 遵守、Deep Mapper 実験設計の整合性確保）
+- reviewer 出力は揮発、永続化は本 log entry のみ（実装着手は user 判断待ち、早すぎる固定化を避ける）
+
+**未解決 / punt**:
+- reviewer 指摘 6 項目の対処優先度（Show HN タイミングとの兼ね合い）= user 判断
+- /ast-map → reviewer 2 step を chain skill 化するか（auto 化やりすぎ警戒）= 保留
+
+**地雷**:
+- 🟡 reviewer 指摘の pickle 信頼境界 + Markdown injection 経路は Show HN 投稿前に対処したい類のリスク。本セッションで指摘は得たが対策未実装、Show HN freeze branch (`wip/show-hn-freeze-2026-05-05`) 進行中の判断材料
+
+**reviewer 指摘 6 項目 (構造マップ単独からの抽出)**:
+1. 🔴 `src/bobrain/search.py::search` (cx 16) は唯一の異常値、対応する `tests/test_search.py` が構造上不在 = 最も複雑な箇所が最も薄くテストされている疑い
+2. 🔴 `src/bobrain/search.py:39` `pickle.load` の信頼境界: 現状 `~/.bobrain/` 自己書き込み前提だが multi-root 化 (PR #2) + Phase 2 auto-sops 監視で他者書き込み index する設計に進化した瞬間 RCE 経路。`safetensors` / `json + numpy` 移行候補
+3. 🟡 indexer.py が hub 化、external import 7+ 個 + 中複雑度関数 4 つ集中 → 将来 chunker / embedder / store の責務分割余地
+4. 🎯 **Index Poisoning via Markdown**: `.md` 本文に間接 prompt injection を仕込まれた瞬間、search 結果が MCP tool response として Claude/Cursor に直送 = LLM が毒を飲む経路。Web Clipper / shared Vault が信頼境界破壊
+5. 🎯 **Local Egress 経由の情報流出**: bobrain は local-first だが search 結果を LLM (Anthropic / Cursor) に渡す時点で外部 API。Vault 内 PII / API キーが redaction なしで流出 (suspicious literal hits 0 = secret scanner 不在を構造から指摘)
+6. 🎯 **Show HN Survival Ratio 警戒**: README が "Architecture-led / 制御された力" を謳っているのに pickle + redaction なし + injection 境界曖昧 → 技術系コメンテーターが投稿後に突く既知ポイント、投稿前対処したい
+
+**次のレビュー候補ファイル (line-level)**: `search.py:22-90` (search 全体) → `search.py:39` (pickle.load 周辺) → `indexer.py:69-160` (chunk_markdown + tokenize)
+
+**次の 1 タスク**: bobrain reviewer 指摘 6 項目の対処優先度判断（Show HN 投稿との兼ね合いで pickle migration / search test / Markdown sanitize / redaction layer の順序を user 判断、DR 案 1 の Gemini Deep Research 結果を待ってから優先順位を最終決定する手もある）
