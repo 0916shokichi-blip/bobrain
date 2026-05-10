@@ -6,11 +6,13 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
+from .redact import redact_results
 from .sanitize import process_results
 from .search import search as do_search
 from .stats import list_namespaces as do_list_namespaces
 
 DATA_DIR = Path(os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain")))
+REDACT_ENABLED = os.environ.get("BOBRAIN_REDACT", "1") != "0"
 
 mcp = FastMCP("bobrain")
 
@@ -23,10 +25,14 @@ def search_docs(
 ) -> list[dict]:
     """Hybrid (BM25 + vector) search over locally indexed directories.
 
-    Each result's ``text`` is wrapped in a ``<bobrain-search-result>`` boundary
-    marker so the calling LLM sees indexed content as external data, not
-    instructions. When any result contains apparent prompt-injection markers,
-    a synthetic ``_warning`` entry is prepended at index 0.
+    Search results are passed through two defenses before being returned:
+    1. PII / secret redaction on the chunk ``text`` field (emails, common
+       API key formats, /Users/<name>/ paths). Disable with
+       ``BOBRAIN_REDACT=0`` or ``bobrain serve --no-redact``.
+    2. Prompt-injection sanitize layer: each ``text`` is wrapped in a
+       ``<bobrain-search-result>`` boundary marker, and a synthetic
+       ``_warning`` entry is prepended at index 0 if any result contains
+       apparent injection markers.
 
     Args:
         query: Natural language query string.
@@ -34,6 +40,8 @@ def search_docs(
         namespaces: Optional list of namespaces to restrict the search to.
     """
     raw = do_search(query, DATA_DIR, top_k=top_k, namespaces=namespaces)
+    if REDACT_ENABLED:
+        raw = redact_results(raw)
     return process_results(raw)
 
 

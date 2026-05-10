@@ -73,7 +73,16 @@ def watch(
 
 
 @app.command()
-def serve() -> None:
+def serve(
+    no_redact: bool = typer.Option(
+        False,
+        "--no-redact",
+        help="Disable PII / secret redaction in search results. Use only on "
+        "fully trusted Vaults; equivalent to BOBRAIN_REDACT=0.",
+    ),
+) -> None:
+    if no_redact:
+        os.environ["BOBRAIN_REDACT"] = "0"
     from .server import main as serve_main
 
     serve_main()
