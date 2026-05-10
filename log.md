@@ -534,3 +534,28 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 **次のレビュー候補ファイル (line-level)**: `search.py:22-90` (search 全体) → `search.py:39` (pickle.load 周辺) → `indexer.py:69-160` (chunk_markdown + tokenize)
 
 **次の 1 タスク**: bobrain reviewer 指摘 6 項目の対処優先度判断（Show HN 投稿との兼ね合いで pickle migration / search test / Markdown sanitize / redaction layer の順序を user 判断、DR 案 1 の Gemini Deep Research 結果を待ってから優先順位を最終決定する手もある）
+
+## 2026-05-10 (続) reviewer 6 項目対処計画 draft 化
+
+**やったこと**: 5/10 12:52 entry で抽出した reviewer 6 項目について、Show HN 投稿タイミングとの兼ね合いで対処優先順位を策定 → `.launch-drafts/reviewer-6-issues-plan.md` (untracked、`.gitignore` で除外済み = local-only retain) に整理。
+
+**Show HN 投稿前ピース 4 件 (中 × 4)**:
+1. #4 Markdown injection sanitize layer (主要 use case 直撃、最 priority)
+2. #5 PII / API key redaction
+3. #2 pickle.load → JSON+numpy 移行 (Phase 2 auto-sops 着手前に基盤移行)
+4. #6 README "What it doesn't claim to do" 追加 (#4 #5 #2 完了文言と連動、`/playable-gate` 必須)
+
+**Show HN 投稿後ピース 2 件**:
+5. #1 search.py cx 16 分解 + tests/test_search.py 追加 (技術的負債、機能影響なし)
+6. #3 indexer.py 責務分割 (Phase 3 で chunker/embedder/store 分割、Phase 2 #6 #7 と連動)
+
+**未解決 / user 判断**:
+- 着手順序確定 (#4 → #5 → #2 → #6 の推奨だが user 判断)
+- DR 発注の要否 (上記計画は明確だが「やりすぎ」候補あり、log.md DR 案 1 のオプション残存)
+- 各実装の branch 戦略 (wip/show-hn-freeze-2026-05-05 で連続 vs 別 branch)
+
+**地雷**:
+- 🟡 sanitize / redact は heuristic = 完全防御ではない、README で「100% 防ぐ」と謳わない (false security 回避)
+- 🟡 #2 pickle 移行は後方互換 layer 必須 (既存 user の `~/.bobrain/bm25.pkl` への配慮)、deprecation warning 1 release 期間維持
+
+**次のアクション**: user が #4 から実装着手と発話したら draft の「後継ターン用クイック起動」6 ステップで起動可。draft path: `.launch-drafts/reviewer-6-issues-plan.md`
