@@ -6,6 +6,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
+from .sanitize import process_results
 from .search import search as do_search
 from .stats import list_namespaces as do_list_namespaces
 
@@ -22,12 +23,18 @@ def search_docs(
 ) -> list[dict]:
     """Hybrid (BM25 + vector) search over locally indexed directories.
 
+    Each result's ``text`` is wrapped in a ``<bobrain-search-result>`` boundary
+    marker so the calling LLM sees indexed content as external data, not
+    instructions. When any result contains apparent prompt-injection markers,
+    a synthetic ``_warning`` entry is prepended at index 0.
+
     Args:
         query: Natural language query string.
         top_k: Max number of results.
         namespaces: Optional list of namespaces to restrict the search to.
     """
-    return do_search(query, DATA_DIR, top_k=top_k, namespaces=namespaces)
+    raw = do_search(query, DATA_DIR, top_k=top_k, namespaces=namespaces)
+    return process_results(raw)
 
 
 @mcp.tool()
