@@ -710,3 +710,25 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟢 handle+gmail 2 commit は origin/main ancestor で公開済、Show HN 投稿前 must ではない (本名駆除が本質)
 
 **次の 1 タスク**: Dependabot python-multipart alert (#1) auto-close 確認 (1 時間後 or 翌朝)。続いて Show HN 投稿準備フェーズ (GIF 撮影 + Social Preview upload + 投稿日決定) へ移行。
+
+## 18:05 follow-up — SECURITY.md 起草 + LP XSS check (二次監査 scope 外 #1 + #4)
+
+**やったこと**: 二次監査 scope 外として棚卸しした 10 件のうち、Show HN 投稿前 must の (#1) SECURITY.md 起草 + (#4) LP XSS check を Claude 完結で実施。SECURITY.md 133 行 (Reporting / Supported Versions / Scope in-out / Defenses 7 層 / Past audits 2026-05-10 + 05-13)、LP XSS check は危険 JS API ゼロ + 外部 script ゼロ + localStorage→classList 固定文字列のみで HTML 解釈経路ゼロ = 修正不要確認。
+
+**決定**:
+- SECURITY.md は **GitHub private vulnerability reporting を first option / noreply email を fallback** (理由: 匿名 author + Show HN 後の anonymous reporter 受け入れ、email 直公開より private flow が透明性高い)
+- Defenses in place 7 層を **明示列挙** (理由: vibe_maintainer_disclosure memory の Architecture-led 開示型 N=1 実装、技術系コメンテーターへの transparency が claim の根拠材料に転用可)
+- LP に CSP meta tag を **追加しない** (理由: 既存 inline script + inline style で `'unsafe-inline'` 必須、nonce 化は静的 HTML で困難 = `'unsafe-inline'` 込み CSP は cosmetic でしかなく、誤設定で lang switcher 壊すリスクが上回る)
+- LP XSS check 結果は SECURITY.md に明示せず **本 log entry にのみ記録** (理由: 攻撃面ゼロ確認はメンテナ知識、SECURITY.md は外部向け = 公開する価値が薄い)
+
+**未解決 / punt** (Show HN 投稿前 nice-to-have、user 操作必要):
+- #2 GitHub branch protection rules (UI 操作 1 分): main への直 push 制限 + PR review required
+- #5 PyPI Trusted Publishing 移行 (次 release 時): GitHub Actions OIDC で token 不要化
+- #3 Actions SHA pinning (Dependabot 自動更新で運用化、Show HN 後 OK)
+- #6 Dependabot security update auto-merge (運用 1 ヶ月後の判断)
+- #7 SECURITY.md と past audits を統合した SECURITY-AUDIT.md 公開検討 (transparency 強化、Show HN 後余力あれば)
+
+**地雷**:
+- 🟢 SECURITY.md の SLA (7 日 ack / 30 日 fix) は best-effort 明記済、user 1 人運用で守れない場合は memory に reflective update
+
+**次の 1 タスク**: Dependabot python-multipart alert (#1) auto-close 確認 (1 時間後)。続いて user に branch protection rules 設定推奨を伝える (UI 操作 1 分 = Show HN 投稿前 must)。
