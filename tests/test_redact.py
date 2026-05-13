@@ -17,6 +17,19 @@ SECRETS = [
     ("Authorization: Bearer abcdefghij1234567890", "Bearer [REDACTED:api_key]"),
     ("path /Users/jane/Documents/notes.md", "/Users/[REDACTED:user_path]/Documents"),
     ("Linux path /home/john/repo/src/main.py", "/home/[REDACTED:user_path]/repo"),
+    # Modern Anthropic / OpenAI Project key formats (2026-era)
+    ("ANTHROPIC=sk-ant-api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789", "[REDACTED:api_key]"),
+    ("openai sk-proj-1234567890abcdefghij1234567890abcdef", "[REDACTED:api_key]"),
+    # GitHub fine-grained PAT (github_pat_*) and GitLab PAT (glpat-*)
+    ("ci token github_pat_11AAAA1234567890abcdefghijklmnopqr", "[REDACTED:api_key]"),
+    ("gitlab glpat-AbCdEfGhIj1234567890Xz", "[REDACTED:api_key]"),
+    # JWT (eyJ...eyJ...)
+    ("auth eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NSJ9.SflKxwRJSMeKKF2QT4f", "[REDACTED:jwt]"),
+    # Windows user path
+    (r"open C:\Users\jane\Documents\notes.md", r"C:\Users\[REDACTED:user_path]"),
+    # env-style fallback (catches anything ending in password/secret/token/key/...)
+    ("DB_PASSWORD=hunter2_supersecret_value", "[REDACTED:secret]"),
+    ("API_TOKEN=longvalue1234abc", "[REDACTED:secret]"),
 ]
 
 BENIGN = [

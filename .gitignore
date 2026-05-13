@@ -21,7 +21,9 @@ wheels/
 .mypy_cache/
 .ruff_cache/
 
-# MyBrain local data (LanceDB + BM25 index)
+# Bobrain local data (LanceDB + BM25 index). `.mybrain/` was the pre-rebrand
+# name and is kept here as a residue guard for clones that still hold one.
+.bobrain/
 .mybrain/
 
 # Local env
