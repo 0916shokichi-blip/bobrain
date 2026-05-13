@@ -309,3 +309,14 @@ _2026-04-26 に `~/.claude/.../memory/bobrain_project.md` から移行_
 - **3 ヶ月後再判定弁**: 2026-08-01 目安で強度 4 完走継続 vs 強度 3 落としを再評価
 - **次アクション**: Phase 2 改造 + ローンチ並走（人間タスク依存あり）
 - **詳細**: アプリツリー wiki `log.md` `[2026-05-01] decide` Phase C エントリ + memory `phase_c_judgment_materials.md` §8 + memory `app_tree_restructure_strength4.md` L480+
+
+## director/ 運用規範 (SOP 横展開資産化、2026-05-13 commune-loop cycle 9 で追加)
+
+`.agents/director/_meta.md` を新規作成。exit-8-homage `.agents/director/_meta.md` (N=2 確立、exit-8 commune-loop cycle 3 抽出) を横展開元として bobrain 用に置換・追加した運用 SOP。**思想ファイルでなく実務ガード** として運用 (Codex Augmenter 提案、cycle 9)。
+
+- **継承**: director/ 4 ファイルまたぎ位置付け / Step 1 入口審査 3 分類 / 独立観点化必要条件 4 / 2 階層化 / 形式主義化検出 / 観点総数上限
+- **bobrain 用差し替え**: 成果軸 (過去の自己との再会 / 忘却=再発見 / 検索結果=手がかり) / 境界条件 N=4 (local-first / PII ログ / OSS ライセンス / 運用持続性) / 未確定マーキング N=5-7 (AI 要約化 / 外部 API 化 / Show HN コピー)
+- **bobrain 固有追加 (Step 7-8)**: Phase 2 #6/#7/#8 実装ガード + 動的閾値発火 (外部 API 化 / 自動要約化 / PII ログ収集 / クラウド同期案を hard trigger)
+- **director/ 追加原則停止 (exit-8 cycle 6 補強 1) との整合根拠**: 規範の追加ではなく既存 4 ファイル運用ルールの明文化、思想ファイル化を Codex 検証 #2 で機械排除
+- **N=0 観察ベース**: bobrain 固有 N=2 (「ローカルファースト境界」+「手がかり止まり原則」) は Phase 2 #6/#7/#8 実装提案出現時に発火予定、本 SOP は確立まで枠組みのみ運用
+- **詳細**: log.md `[2026-05-13] commune-loop cycle 9` セクション、`~/.claude/commune-loop-ledger.md` exit8-3 cycle 9 行
