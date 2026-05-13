@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 # Suppress huggingface_hub telemetry by default — bobrain advertises a
@@ -16,7 +17,17 @@ from .sanitize import process_results
 from .search import search as do_search
 from .stats import list_namespaces as do_list_namespaces
 
-DATA_DIR = Path(os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain")))
+# Canonicalize the data dir at startup. ``expanduser`` handles ``~``
+# from MCP-client configs that didn't expand it; ``resolve`` collapses
+# ``..`` segments and surfaces what path we actually write to. The
+# resolved value is logged to stderr in ``main()`` so a misrouted
+# BOBRAIN_DATA env var becomes visible instead of silently writing
+# the index to an unexpected location.
+DATA_DIR = (
+    Path(os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain")))
+    .expanduser()
+    .resolve()
+)
 REDACT_ENABLED = os.environ.get("BOBRAIN_REDACT", "1") != "0"
 
 # Upper bound for LLM-supplied ``top_k``. Search results flow on to an
@@ -71,6 +82,7 @@ def list_namespaces() -> list[dict]:
 
 
 def main() -> None:
+    print(f"[bobrain] data_dir = {DATA_DIR}", file=sys.stderr)
     mcp.run()
 
 

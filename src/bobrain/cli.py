@@ -11,8 +11,10 @@ from .search import search as do_search
 
 app = typer.Typer(help="Bobrain — local multi-source RAG for Claude, Cursor, and friends")
 
-DEFAULT_DATA_DIR = Path(
-    os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain"))
+DEFAULT_DATA_DIR = (
+    Path(os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain")))
+    .expanduser()
+    .resolve()
 )
 
 
