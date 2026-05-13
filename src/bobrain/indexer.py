@@ -38,6 +38,25 @@ _EXCLUDE_DIRS = frozenset({
 
 IGNORE_FILENAME = ".bobrainignore"
 
+# Namespaces flow into LanceDB SQL filter strings (`namespace = '...'`).
+# We restrict them to alphanumeric + ``_-`` and a sane length so the only
+# escape concern downstream is the single quote, which `_escape_sql`
+# still handles. CLI/build_index validates before the value reaches SQL.
+_NAMESPACE_RE = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
+
+
+def validate_namespace(namespace: str) -> str:
+    """Reject namespaces that aren't safe to interpolate into SQL.
+
+    Returns the namespace unchanged on success; raises ValueError otherwise.
+    """
+    if not _NAMESPACE_RE.match(namespace):
+        raise ValueError(
+            f"namespace must match {_NAMESPACE_RE.pattern!s} (got: {namespace!r})"
+        )
+    return namespace
+
+
 _NOISE_POS = {"助詞", "助動詞", "補助記号", "空白", "記号"}
 _tagger: Tagger | None = None
 
@@ -161,7 +180,14 @@ def build_chunks(
 
 
 def chunks_for_file(file_path: Path, namespace: str) -> list[Chunk]:
-    text = file_path.read_text(encoding="utf-8", errors="ignore")
+    # Strict UTF-8: silently dropping garbage with errors="ignore" used to
+    # leak binary fragments (and the ChatML / zero-width markers they may
+    # contain) into the index. A skip-with-warning is louder but safer.
+    try:
+        text = file_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        print(f"[indexer] skipping {file_path}: not valid UTF-8", file=sys.stderr)
+        return []
     return [
         Chunk(
             id=hash_id(str(file_path), i, c),
@@ -301,7 +327,11 @@ def _upsert_rows(data_dir: Path, where: str, rows: list[dict]):
 
 
 def _escape_sql(value: str) -> str:
-    return value.replace("'", "''")
+    # Order matters: escape backslashes first so we don't double-escape
+    # the ones we just introduced for single quotes. LanceDB / DataFusion
+    # currently treats backslash literally, but hardening here keeps the
+    # call site safe against future engine swaps.
+    return value.replace("\\", "\\\\").replace("'", "''")
 
 
 def build_index(
@@ -315,6 +345,7 @@ def build_index(
     `roots` may be a single Path or any iterable of Paths; chunks from every
     root are merged into one batch and the namespace is replaced atomically.
     """
+    validate_namespace(namespace)
     with _phase("scan"):
         chunks = build_chunks(roots, namespace, extra_excludes)
     with _phase("embed", n=len(chunks)):

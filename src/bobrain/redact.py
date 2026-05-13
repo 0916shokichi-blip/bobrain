@@ -16,12 +16,29 @@ from __future__ import annotations
 import re
 
 # Patterns are applied in order. Email is first so that an address like
-# user@host.com isn't shadowed by anything else. The "/Users/" and
-# "/home/" patterns intentionally redact only the username segment so that
-# the rest of the path (which often contains useful project context) is
-# preserved for the LLM.
+# user@host.com isn't shadowed by anything else. Specific high-entropy
+# token formats run before the generic ``sk-*`` catch-all so the matched
+# region is exactly right (and so later additions can carry distinct
+# type labels without reordering). The "/Users/" and "/home/" patterns
+# intentionally redact only the username segment so that the rest of
+# the path (which often contains useful project context) is preserved
+# for the LLM. The env-style fallback runs last to catch leaked
+# ``KEY=value`` lines that no specific pattern recognized.
 _PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b[\w.+\-]+@[\w\-]+\.[\w.\-]+\b"), "[REDACTED:email]"),
+    # JWT (three base64url segments, distinctive eyJ prefix from {"alg")
+    (
+        re.compile(r"\beyJ[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+"),
+        "[REDACTED:jwt]",
+    ),
+    # Anthropic / OpenAI Project keys (longer and structurally distinct
+    # from the legacy sk-* form; redact first so type-specific patterns
+    # can be added later without reordering).
+    (re.compile(r"\bsk-ant-[A-Za-z0-9_\-]{20,}\b"), "[REDACTED:api_key]"),
+    (re.compile(r"\bsk-proj-[A-Za-z0-9_\-]{20,}\b"), "[REDACTED:api_key]"),
+    # GitHub fine-grained PAT and GitLab PAT
+    (re.compile(r"\bgithub_pat_[A-Za-z0-9_]{30,}\b"), "[REDACTED:api_key]"),
+    (re.compile(r"\bglpat-[A-Za-z0-9_\-]{20,}\b"), "[REDACTED:api_key]"),
     (re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}\b"), "[REDACTED:api_key]"),
     (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "[REDACTED:api_key]"),
     (re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}\b"), "[REDACTED:api_key]"),
@@ -33,6 +50,23 @@ _PATTERNS: list[tuple[re.Pattern[str], str]] = [
     ),
     (re.compile(r"/Users/[^/\s\[]+"), "/Users/[REDACTED:user_path]"),
     (re.compile(r"/home/[^/\s\[]+"), "/home/[REDACTED:user_path]"),
+    # Windows user path: C:\Users\<name> (also covers other drive letters)
+    (
+        re.compile(r"\b([A-Za-z]:\\Users\\)[^\\\s\[/]+"),
+        r"\1[REDACTED:user_path]",
+    ),
+    # env-style fallback. The prefix is optional so bare ``PASSWORD=`` and
+    # namespaced ``OPENAI_API_KEY=`` both match. Negative lookahead skips
+    # already-redacted values so we don't double-process e.g.
+    # ``OPENAI_KEY=[REDACTED:api_key]``.
+    (
+        re.compile(
+            r"(?i)\b((?:[A-Za-z_][A-Za-z0-9_]*)?"
+            r"(?:password|passwd|secret|token|api[_-]?key|access[_-]?key|key))"
+            r"\s*=\s*['\"]?(?!\[REDACTED)[^\s'\"]{8,}"
+        ),
+        r"\1=[REDACTED:secret]",
+    ),
 ]
 
 
