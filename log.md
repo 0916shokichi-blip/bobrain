@@ -559,3 +559,46 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟡 #2 pickle 移行は後方互換 layer 必須 (既存 user の `~/.bobrain/bm25.pkl` への配慮)、deprecation warning 1 release 期間維持
 
 **次のアクション**: user が #4 から実装着手と発話したら draft の「後継ターン用クイック起動」6 ステップで起動可。draft path: `.launch-drafts/reviewer-6-issues-plan.md`
+
+
+## [2026-05-13] commune-loop cycle 9 — SOP 横展開資産化 (exit-8-homage から bobrain へ)
+
+**横展開元**: `~/projects/exit-8-homage/.agents/director/_meta.md` (N=2 確立、exit-8 cycle 3 抽出)
+**横展開先**: `~/projects/bobrain/.agents/director/_meta.md` (新規作成、N=0 観察ベース)
+**target 適合**: 3/3 (短編完結 SOP 1 ファイル / メタ階層 director/ 4 ファイル + 横展開構造 / 境界制約 OSS 公開・local-first 思想)
+
+**やったこと**:
+- bobrain `.agents/director/_meta.md` 新規作成 (約 130 行)、exit-8 SOP 構造を継承 + bobrain 用差し替え + bobrain 固有 Step 7/8 追加
+- 継承: director/ 4 ファイルまたぎ位置付け / Step 1 入口審査 3 分類 / 独立観点化必要条件 4 / 2 階層化 / 形式主義化検出 / 観点総数上限 soft 10 / hard 12
+- 差し替え: 成果軸 = 過去の自己との再会 / 忘却=再発見 / 検索結果=手がかり、境界条件 N=4 = local-first / PII ログ / OSS ライセンス / 運用持続性、未確定マーキング N=5-7 = AI 要約化 / 外部 API 化 / Show HN コピー
+- 追加: Step 7 Phase 2 実装ガード (#6/#7/#8 提案時の発火条件) + Step 8 動的閾値発火 (外部 API 化 / 自動要約化 / PII ログ / クラウド同期を hard trigger)
+- commune-loop cycle 9 = bobrain 初の director/ メタ規範運用 (cycle 1-8 は exit-8、cycle 9 が横展開第 1 例)
+
+**決定 (5 件)**:
+- target 選定 delta=invert 採用 (origin=codex、Claude 単独案 philosophy-chat 先行を Codex 独立 framing で bobrain 先行に反転、理由: 公開済 OSS CLI/MCP に SOP が効くかを試せる SOP 汎用性検証価値が最大、Phase 2 #8 auto-sops/ と直結)
+- SOP 内容 delta=synthesize 採用 (origin=synthesis、exit-8 形式 + bobrain local-first / OSS / Phase 2 実務を合成、Codex 提案 8 箇条のテンプレ要点を全採用)
+- 閾値運用 delta=threshold 採用 (origin=codex、QDAIF score だけでなく外部 API 化 / 自動要約化 / PII ログ / クラウド同期を hard trigger、Step 8 として明文化)
+- exit-8 N=2 (normal 異化 / hommage) を直接持ち込まず、bobrain 用 N=2 候補軸 (「ローカルファースト境界」+「手がかり止まり原則」) を予定軸として記録 (Codex 地雷 1 採用)
+- Gamma 攻撃 skip (公開コピー絡みなし = README / hero 変更なし / 倫理境界絡みなし / プラットフォーム規約絡みなし、cycle 7/8 と同様)
+
+**Cycle 9 が回避した地雷 (Codex 検証)**:
+- exit-8 N=2 を持ち込まない = bobrain 固有 N=2 が立つまで本 SOP は枠組みのみ運用、逆流防止
+- Phase 2 実装 (#6/#7/#8) と衝突させない = `_meta.md` は機能追加の邪魔ではなく auto-sops/ が参照する判断規範
+- director/ 追加原則と矛盾させない = 新思想を増やさず既存 4 ファイル (philosophy_os / anti_patterns / qdaif_axes / vision) の更新条件・拒否権・期限管理を書く
+
+**未解決 / punt**:
+- bobrain N=2 確立 (「ローカルファースト境界」 + 「手がかり止まり原則」の positive definition 化) は次サイクル送り、Phase 2 #6/#7/#8 実装提案出現時に発火予定
+- exit-8 Pre-Gate 9 (cycle 8 確定) と bobrain 側 Pre-Gate の整合性 = bobrain 単独でも cycle 9 以降の director/ 追加に同型 Gate を作るか別ルールにするか
+- 本 SOP 自体の N=2 横展開 = exit-8 + bobrain の 2 project で SOP 構造が動いたという観察、次の横展開先 (philosophy-chat / character-gallery / bob-survivor / transcribe-bird) は別 cycle 候補
+
+**地雷**:
+- bobrain wip/show-hn-freeze branch 上で commit = main へ merge 時に cycle 9 が一緒に統合される、main の ahead 1/behind 2 状態への影響注意
+- _meta.md が「director/ 追加原則停止」(exit-8 cycle 6 補強 1) と矛盾しない根拠 = 「規範の追加ではなく既存 4 ファイル運用ルールの明文化」、CLAUDE.md にも同根拠記載
+- 横展開先で SOP が「思想ファイル化」する転落リスク (Codex 地雷 2) → bobrain は実務ガード位置付けを CLAUDE.md / _meta.md 冒頭で明示
+
+**Outcome Probe (cycle 9 自体)**:
+- 観測する結果: bobrain Phase 2 #6/#7/#8 実装提案が出た時、本 SOP の Step 7 機能ガードが発火して提案を入口審査 3 分類に通せる
+- 反証条件: Phase 2 実装が director/ 議論を経ずに直接 PR 化される (`_meta.md` が読まれない / 機能追加の邪魔として無視される)
+- 次確認方法: 次回 bobrain Phase 2 着手時に Claude が `_meta.md` Step 7 を参照するか、Phase 2 PR draft 段階で director/ 議論ログが残るか
+
+**次の 1 タスク**: bobrain Phase 2 #2 (pickle 移行) or #6 (Markdown heading chunking) 着手時に本 SOP Step 7 を発火させる運用テスト (Claude 駆動、director/ 議論ログを log.md に記録)
