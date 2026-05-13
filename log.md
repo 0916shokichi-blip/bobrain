@@ -681,3 +681,11 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 **完走状態**: 二次監査 13 件中、🔴 6 / 🟡 7 = **🔴+🟡 全件対処** (一次未対象面 fully covered)。残は 🟢 4 件 (watch のみ、対処不要) + user 側 PR #3 merge / wip→main 統合 / Claude CI strict 化 (PR #3 merge ping 待ち)。
 
 **次の 1 タスク**: user `gh pr merge 3` → 「CI strict 化やって」発話で `pip-audit \|\| true` の `\|\| true` 外し commit。
+
+## 17:40 follow-up — CI strict 化 (PR #3 merge 後発火)
+
+**やったこと**: user PR #3 (urllib3 2.7.0) merge 確認 → wip 側も `uv lock --upgrade-package urllib3` で 2.6.3 → 2.7.0 bump (origin/main 整合) → pip-audit run で `No known vulnerabilities found` 確認 → ci.yml の Audit dependencies step から `|| true` 外して strict 化。
+
+**完走状態**: 二次監査関連の Claude 完結タスク **全件 close**。8 commits on wip (push なし)。残は user 側 wip → main 統合 (Show HN 投稿日朝) のみ。
+
+**次の 1 タスク**: なし。Show HN 投稿準備フェーズへ移行可。
