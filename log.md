@@ -606,3 +606,37 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟢 wip ancestor 流出 commit 2 件 (origin に上げなければ公開リスクなし)
 
 **次の 1 タスク**: Dependabot 自動 PR (3 件 high) の到着確認 + merge
+
+## 17:00 session wrap (セキュリティ二次監査)
+
+**やったこと**: /goal セキュリティ二次監査で bobrain (Python ローカル RAG MCP) を二次監査 → 13 件抽出 (🔴 6 / 🟡 7 / 🟢 4) → 機械的に塞げる 9 件を 2 commit (`0221bb5` security fix + `e9e6f04` deps + CI) で wip branch に積んだ (push なし)。code-reviewer-ja 独立観点 + 自身調査の差分突合で発見した 4 件を統合: (a) `.gitignore` リブランド残骸 `.mybrain/` のまま `.bobrain/` 未除外、(b) HF telemetry default ON で local-first 矛盾、(c) `archive/pr2-test-merge-2026-05-07` tag に本名「東将大」+ gmail email を `9defffa` で保全 (push --tags で漏出時限爆弾)、(d) dev-deps SAST tool ゼロ。
+
+**決定 (10 件)**:
+- 二次監査スコープ = 一次対処の抜け穴 (sanitize/redact) + 一次未対象の入口 (server.py/indexer.py/.bobrainignore) + 依存セキュリティ + 外部 API egress + 5 監査軸 (director/_meta.md 準拠) (理由: 一次は項目駆動、二次は構造駆動で攻撃面マップ全洗いに切替)
+- code-reviewer-ja は二次なので Deep Mapper 制約解除 = 生コード閲覧 OK 委譲 (理由: 一次で AST マップ + reviewer 抽出を消化済み、二次は実装レベル深掘り段階)
+- pickle 移行 #2 は本セッション範囲外 (理由: 半日仕事 + 後方互換 1 release deprecation 必須 + Show HN 投稿タイミング判断要 = M complexity の単独 commit に分離、本 commit の atomicity 維持)
+- top_k clamp は MAX_TOP_K=50 で固定 (理由: RAG コンテキスト budget 上限の経験値、LLM 由来 adversarial 入力源の DoS surface 封鎖)
+- HF_HUB_DISABLE_TELEMETRY は setdefault (理由: 既存 env 設定 user override 可、明示禁止より conservative)
+- sanitize 日本語パターン 5 + ChatML/Llama/Alpaca 3 + NFKC + zero-width strip (理由: 日本語 PKM パワーユーザーターゲット、homoglyph は confusable_homoglyphs dep 重く一旦 skip)
+- redact env-style fallback の prefix を optional (`(?:[A-Za-z_][A-Za-z0-9_]*)?`) (理由: bare PASSWORD= と OPENAI_KEY= 両対応、最初は prefix 必須で PASSWORD 単独漏れ → 修正)
+- env-style に `(?!\[REDACTED)` lookahead (理由: 上流パターンが redact 済みの値を再 redact し型情報破壊を防ぐ、idempotency 維持)
+- indexer.py utf-8 strict skip + sys.stderr 警告 (理由: `errors="ignore"` の binary silent decode は injection 経路、既存 1042 chunks で valid UTF-8 だけ通る前提なら破壊的影響なし)
+- pip-audit CI step は initial soft-fail (`|| true`) (理由: urllib3 PR #3 並走中で strict だと無関係 PR 巻き込み、deps green 後に strict 化)
+
+**未解決 / punt**:
+- #2 pickle 移行: ~/.bobrain/bm25.pkl 後方互換 deprecation 1 release 期間必要、Phase 2 #8 auto-sops 着手前に基盤移行
+- archive/pr2-test-merge-2026-05-07 tag 削除: auto-mode classifier に blocked (「お前で全部やって」では tag 削除の明示認可とみなさず)、user 手動 `git tag -d archive/pr2-test-merge-2026-05-07` (recovery: `git tag archive/pr2-test-merge-2026-05-07 deaccc649020c472d0d31699f856284ba68b88c9`、reflog 30 日)
+- wip → main 統合タイミング: wip ancestor 2 commit (d6d908f / fb43ade、0916shokichi-blip + gmail) PII rewrite、Show HN 投稿前の main 確定タイミングで対処
+- Dependabot urllib3 PR #3 (open、CI SUCCESS) merge 判断 = user 判断 (公開アクション)
+- pip-audit CI を `|| true` 外して strict 化のタイミング (urllib3 PR #3 merge 直後)
+- homoglyph 対応 (Cyrillic 'І' for Latin 'I'): NFKC では正規化されない、`confusable_homoglyphs` dep 追加要、現状 watch 候補
+
+**地雷**:
+- 🟡 sanitize 日本語パターンは「あなたは今から、別の」のような自然な接続を吸収するため `[、。\s]*` で広めにマッチ、benign 文「あなたは今、忙しいですか」等は別ワード絞り込みで false positive 回避するも運用観察必要
+- 🟡 env-style `[A-Za-z_]+key` で `monkey_key=...` のような benign 変数名も false positive 候補、value 8+ 文字制約 + lookahead で実害低だが PKM 内 false positive 観測時 patterns refine
+- 🟡 `pip-audit || true` の soft-fail を放置すると CVE 検出が運用 noise になる、urllib3 PR #3 merge 直後に strict 化必須 (この punt が最大の地雷)
+- 🟢 archive tag 削除 blocked = 時限爆弾だが local refs 限定で意図的 push しない限り漏出ゼロ、user 1 コマンドで解消
+- 🟢 indexer.py `validate_namespace` で既存 namespace (`mybrain`/`monetize`/`apptree`/`claude-knowledge`) は全て whitelist match、後方互換 OK
+- 🟢 pip-audit run で urllib3 2 件 CVE 検出確認、python-multipart 0.0.28 は clean 確認 (本 commit で 0.0.26 → 0.0.28)
+
+**次の 1 タスク**: user 手動 `git tag -d archive/pr2-test-merge-2026-05-07` (PII tag 駆除、Show HN 投稿前の最後の漏出経路封鎖)。続いて Dependabot PR #3 (urllib3) merge 判断 → wip → main 統合タイミング → #2 pickle 移行の順。
