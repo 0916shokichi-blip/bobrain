@@ -669,3 +669,15 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 残 Claude 判断: CI strict 化 (PR #3 merge 後発火) / BOBRAIN_DATA 防御 (Show HN 後 OK)
 
 **次の 1 タスク**: user `gh -R 0916shokichi-blip/bobrain pr merge 3 --squash --delete-branch` (urllib3 PR #3 merge) → Claude に「CI strict 化やって」発話で `|| true` 外し commit。または Show HN 投稿日朝に wip → main rebase 統合。
+
+## 17:30 follow-up — BOBRAIN_DATA 防御 (🟡 #8) 完走
+
+**やったこと**: 17:20 wrap で「Show HN 後対応で OK」と punt した BOBRAIN_DATA hardening を user 「お前だけで完結するものはやって」発話で即着手。expanduser + resolve で server.py / cli.py 両入口を canonical 化、server.main() 起動時に stderr へ `[bobrain] data_dir = <path>` 出力で MCP client config 経由の env 注入を「見える化」で診断可能に。
+
+**決定**:
+- resolve 自体は防御ではなく診断 (theoretical attack の attack surface 自体は限定的) と位置付け、**stderr print が本質** (理由: MCP client config 侵害シナリオで silently 任意ディレクトリに index 作成される経路を user が即気づける = transparency 駆動の防御)
+- symlink 追跡 (rglob) の defense は skip (理由: vault に symlink 置く benign UX を壊す、reviewer 評価も 🟡 で限定的)
+
+**完走状態**: 二次監査 13 件中、🔴 6 / 🟡 7 = **🔴+🟡 全件対処** (一次未対象面 fully covered)。残は 🟢 4 件 (watch のみ、対処不要) + user 側 PR #3 merge / wip→main 統合 / Claude CI strict 化 (PR #3 merge ping 待ち)。
+
+**次の 1 タスク**: user `gh pr merge 3` → 「CI strict 化やって」発話で `pip-audit \|\| true` の `\|\| true` 外し commit。
