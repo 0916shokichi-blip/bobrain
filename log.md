@@ -689,3 +689,24 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 **完走状態**: 二次監査関連の Claude 完結タスク **全件 close**。8 commits on wip (push なし)。残は user 側 wip → main 統合 (Show HN 投稿日朝) のみ。
 
 **次の 1 タスク**: なし。Show HN 投稿準備フェーズへ移行可。
+
+## 17:58 session wrap (二次監査セッション総括 + wip → main 統合完走)
+
+**やったこと**: /goal セキュリティ二次監査セッションの完全クローズ。9 commits を main に push (urllib3 PR #3 と並走)、CI ✅ 37s SUCCESS で pip-audit strict mode 通過。wip → main rebase 統合は 22 commits / 1 conflict (CLAUDE.md L46-50、ours 採用) で完走。memory `handoff_split_timing_vs_execution.md` 追加。
+
+**決定 (3 件)**:
+- wip → main は rebase + ff-only 採用 (理由: commit 粒度保持 = retrospective 価値、squash で潰さない)
+- CLAUDE.md conflict は ours (HEAD = origin/main 側) 採用 (理由: L47-48 の Phase 2 #3/#5 完了行を残す = 情報量豊富、wip 側は L54 統合説明だけ残そうとしてた = 情報損失)
+- pickle fallback path は v0.3.0 削除予定 = 1 release deprecation (理由: 既存 user 安全、即削除で rollback 経路ゼロは過剰)
+
+**未解決 / punt**:
+- python-multipart alert (#1) GitHub 側 scan 待ち = 1 時間で自動 close 想定 (uv.lock は 0.0.28 反映済)
+- wip branch local 残存 = cleanup 判断 (origin にはない、reflog 30 日復活可、本 wrap で削除候補)
+- pickle legacy fallback path v0.3.0 削除 = 将来 TODO (今やらない)
+
+**地雷**:
+- 🟡 vim サーカス: user が `git rebase -i` で vim 開く → insert モードで `:wq#` 混入 → rebase break → abort → 再走。Claude 側で `GIT_EDITOR=true` + 非対話 rebase で完結可能だった = handoff 設計ミス、memory `handoff_split_timing_vs_execution.md` に永続化済
+- 🟢 本名 commit 9defffa は orphan (30 日 GC 待ち)、`git fsck --lost-found` で復活可だが意図的 GC 待ち
+- 🟢 handle+gmail 2 commit は origin/main ancestor で公開済、Show HN 投稿前 must ではない (本名駆除が本質)
+
+**次の 1 タスク**: Dependabot python-multipart alert (#1) auto-close 確認 (1 時間後 or 翌朝)。続いて Show HN 投稿準備フェーズ (GIF 撮影 + Social Preview upload + 投稿日決定) へ移行。
