@@ -1,13 +1,13 @@
 """Hybrid search: BM25 + vector, combined via Reciprocal Rank Fusion."""
 from __future__ import annotations
 
-import pickle
 from pathlib import Path
 
 import lancedb
 from fastembed import TextEmbedding
 from rank_bm25 import BM25Okapi
 
+from .bm25_state import load_state
 from .indexer import MODEL_NAME, TABLE_NAME, tokenize
 
 
@@ -35,8 +35,7 @@ def search(
         vector_results = [r for r in vector_results if r["namespace"] in namespaces]
     vector_ranked_ids = [r["id"] for r in vector_results]
 
-    with (data_dir / "bm25.pkl").open("rb") as f:
-        bm25_data = pickle.load(f)
+    bm25_data = load_state(data_dir)
     bm25: BM25Okapi = bm25_data["bm25"]
     q_tokens = tokenize(query)
     bm25_scores = bm25.get_scores(q_tokens)

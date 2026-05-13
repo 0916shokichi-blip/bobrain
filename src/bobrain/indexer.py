@@ -1,9 +1,8 @@
-"""Indexer: markdown → chunks → embeddings → LanceDB + BM25 pickle."""
+"""Indexer: markdown → chunks → embeddings → LanceDB + BM25 JSON state."""
 from __future__ import annotations
 
 import hashlib
 import os
-import pickle
 import re
 import sys
 import time
@@ -18,6 +17,8 @@ from fastembed import TextEmbedding
 from fugashi import Tagger
 from rank_bm25 import BM25Okapi
 from tqdm import tqdm
+
+from .bm25_state import LEGACY_PICKLE_FILE, save_state
 
 MODEL_NAME = "intfloat/multilingual-e5-large"
 VECTOR_DIM = 1024
@@ -269,23 +270,28 @@ def _chunks_to_rows(chunks: list[Chunk]) -> list[dict]:
 
 
 def _rebuild_bm25(table, data_dir: Path) -> None:
-    """Re-dump the BM25 pickle from every row currently in the LanceDB table."""
+    """Re-dump BM25 state as JSON from every row currently in the LanceDB
+    table. Drops any legacy pickle file once the new state is written so
+    the next ``load_state`` call doesn't need the deprecation fallback.
+    """
     arrow_table = table.to_arrow().select(["id", "text", "path", "namespace"])
     records = arrow_table.to_pylist()
     texts = [r["text"] for r in records]
     tokenized = [tokenize(t) for t in texts]
     bm25 = BM25Okapi(tokenized) if tokenized else None
-    with (data_dir / "bm25.pkl").open("wb") as f:
-        pickle.dump(
-            {
-                "bm25": bm25,
-                "ids": [r["id"] for r in records],
-                "texts": texts,
-                "paths": [r["path"] for r in records],
-                "namespaces": [r["namespace"] for r in records],
-            },
-            f,
-        )
+    save_state(
+        {
+            "bm25": bm25,
+            "ids": [r["id"] for r in records],
+            "texts": texts,
+            "paths": [r["path"] for r in records],
+            "namespaces": [r["namespace"] for r in records],
+        },
+        data_dir,
+    )
+    legacy = data_dir / LEGACY_PICKLE_FILE
+    if legacy.exists():
+        legacy.unlink()
 
 
 def _table_exists(db, name: str) -> bool:
