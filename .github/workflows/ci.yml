@@ -30,4 +30,12 @@ jobs:
         run: uv sync --dev
 
       - name: Run lightweight tests
-        run: uv run pytest tests/test_indexer.py tests/test_tokenize.py tests/test_stats.py -v
+        run: uv run pytest tests/test_indexer.py tests/test_tokenize.py tests/test_stats.py tests/test_sanitize.py tests/test_redact.py -v
+
+      # Vulnerability scan over the locked dependency set. Soft-failed
+      # initially so the existing Dependabot alerts (PR #3 in flight)
+      # don't block unrelated PRs. Drop the `|| true` once the deps are
+      # green so future CVEs gate merges.
+      - name: Audit dependencies
+        if: matrix.python-version == '3.13'
+        run: uv run pip-audit || true
