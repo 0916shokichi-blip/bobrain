@@ -82,14 +82,15 @@
 6. ~~共通フッター規格 (N=1) 適用~~ → **完了 (2026-04-28)**: README.md と docs/index.html の footer を `bob_persona.md` の共通フッター規格に揃えた。Avatar by Nano Banana Pro の理由付き disclosure + `1 of 8 tools` クロスリンク（暫定 link 先 = GitHub プロフィール、bob-universe デプロイ後に bob_persona.md 1 箇所更新で全アプリ伝播）
 7. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿** → 投稿前の最終ゲート + 投稿後の if-then は本ファイル「**Show HN 投稿の判断ロジック**」参照（後段）
 
-### Phase 3 #4（決済）の方針
+### Phase 3 #4（決済）— **凍結 (2026-05-18)**
 
-- **形態**: Lab Pass + Notebook 連載（2026-05-09 commune パターン α 確定）
-- **MoR**: Polar.sh (4% + $0.40)、bobrain = 開発者向け確定（memory `payment_mor_provider_split`）
-- **バーチャルオフィス / 屋号 / 銀行**: NAWABARI / Bobrain Labs / GMO あおぞら屋号付き口座
-- **timing**: Show HN 投稿 → KPI 観察 → Notebook 1 本目執筆 → 3 本完走時に Lab Pass beta 募集開始 → N=1 検証後に Pro 版本格化判断
-- **詳細実装計画**: `.launch-drafts/phase3-4-implementation-plan.md`（法務 + 決済インフラ + bobrain 側 License Key validate / Webhook handler / MCP list_tools 動的生成 + Lab Pass 機能定義 + 9 地雷参照）
-- **不採用 (2026-04-26 統合計画より)**: 「思想的 README リライト」「赤ちゃんアバター動画オーバーレイ」は A/B モード分離 + アプリ固有キャラ 1 体原則に反するため不採用
+- **状態**: 凍結。bobrain は OSS 一本 (MIT、PyPI 0.1.0 公開済) で完結、課金導入は当面しない
+- **凍結理由**: vendor 側労力 (closed Discord 運営 / 招待管理 / Notebook 連載 4-8 ヶ月コミット) が user 自身の消費者構造から外れる + 法務 + 決済 setup (NAWABARI / GMO / Polar / W-8BEN / 特商法) が「事業者になる」境界を踏むコスト vs 期待 revenue (月 $50-200) の ROI が user の人生 quality に意味薄。memory `feedback_build_only_what_i_use` 最上位 filter で OSS のままが整合
+- **将来の解凍 trigger**: Show HN 反応で「予想外に売る意欲が湧く」 OR Pro 機能 (heading chunking / CoreML 等) で「これは課金してでも欲しい」と user 自身が判定した時。逆走性高い設計を維持 (現時点で NAWABARI / GMO 契約等の sunk cost なし)
+- **計画書は保存**: `.launch-drafts/phase3-4-implementation-plan.md`（Lab Pass + Notebook 連載 + 法務 + 決済インフラ + bobrain 側 License Key validate / Webhook handler / 9 地雷参照、解凍時に着手起点として再利用）
+- **memory 保持**: `payment_mor_provider_split` (Polar.sh / Lemon Squeezy 使い分け + 9 地雷) は判断軸として永続価値、削除しない
+- **Show HN は予定通り**: Show HN 投稿は OSS validation の手段で課金とは独立、Phase 3 #3 残タスク (og.png + GIF + 投稿) は user 操作待ち
+- **不採用 (2026-04-26 統合計画より)**: 「思想的 README リライト」「赤ちゃんアバター動画オーバーレイ」は A/B モード分離 + アプリ固有キャラ 1 体原則に反するため不採用 (本凍結とは独立、当時の判断維持)
 
 ### スタイロメトリー対策（ローンチ告知前）
 
