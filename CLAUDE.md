@@ -82,15 +82,14 @@
 6. ~~共通フッター規格 (N=1) 適用~~ → **完了 (2026-04-28)**: README.md と docs/index.html の footer を `bob_persona.md` の共通フッター規格に揃えた。Avatar by Nano Banana Pro の理由付き disclosure + `1 of 8 tools` クロスリンク（暫定 link 先 = GitHub プロフィール、bob-universe デプロイ後に bob_persona.md 1 箇所更新で全アプリ伝播）
 7. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿** → 投稿前の最終ゲート + 投稿後の if-then は本ファイル「**Show HN 投稿の判断ロジック**」参照（後段）
 
-### Phase 3 #4（決済）の方針確定（2026-04-26 統合計画より）
+### Phase 3 #4（決済）の方針
 
-- **MoR 第一候補: Polar.sh**（4% + $0.40、販売者表記「Polar Software Inc.」、GitHub ネイティブ統合、KYC は Stripe Identity）
-- **MoR 予備: Lemon Squeezy**（5% + $0.50、Stripe 傘下、PayPal 対応が必要になったら併用）
-- **バーチャルオフィス: NAWABARI**（月 1,100 円、**GPS 混入チェック実装済み**、留守電音声メール転送で肉声露出回避）
-- **屋号: Bobrain Labs**（NAWABARI 契約時に屋号宛郵便受領可を同時依頼）
-- **銀行: GMO あおぞらネット銀行 屋号付き口座**（Selfie 動画認証で即日に近いスピード、通常 1 週間）
-- **特商法表記運用: 「請求があれば遅滞なく開示」**（`legal-ja` agent で雛形作成）
-- 取り込まなかった外部レポート提案: 「思想的 README リライト」「赤ちゃんアバター動画オーバーレイ」は A/B モード分離 + アプリ固有キャラ 1 体原則に反するため不採用。詳細は `Documents/マネタイズ/pages/analyses/Bobrain Phase 3-4 統合計画 — Polar 匿名事業基盤 2026-04-26.md`
+- **形態**: Lab Pass + Notebook 連載（2026-05-09 commune パターン α 確定）
+- **MoR**: Polar.sh (4% + $0.40)、bobrain = 開発者向け確定（memory `payment_mor_provider_split`）
+- **バーチャルオフィス / 屋号 / 銀行**: NAWABARI / Bobrain Labs / GMO あおぞら屋号付き口座
+- **timing**: Show HN 投稿 → KPI 観察 → Notebook 1 本目執筆 → 3 本完走時に Lab Pass beta 募集開始 → N=1 検証後に Pro 版本格化判断
+- **詳細実装計画**: `.launch-drafts/phase3-4-implementation-plan.md`（法務 + 決済インフラ + bobrain 側 License Key validate / Webhook handler / MCP list_tools 動的生成 + Lab Pass 機能定義 + 9 地雷参照）
+- **不採用 (2026-04-26 統合計画より)**: 「思想的 README リライト」「赤ちゃんアバター動画オーバーレイ」は A/B モード分離 + アプリ固有キャラ 1 体原則に反するため不採用
 
 ### スタイロメトリー対策（ローンチ告知前）
 
