@@ -732,3 +732,22 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟢 SECURITY.md の SLA (7 日 ack / 30 日 fix) は best-effort 明記済、user 1 人運用で守れない場合は memory に reflective update
 
 **次の 1 タスク**: Dependabot python-multipart alert (#1) auto-close 確認 (1 時間後)。続いて user に branch protection rules 設定推奨を伝える (UI 操作 1 分 = Show HN 投稿前 must)。
+
+## [2026-05-17 08:10] cleanup | archive PII tag 既消滅判定 + 漏出経路ゼロ確認
+
+**やったこと**: /board → /integrate cleanup 経路で bobrain log L638 🟢 archive tag 削除 blocked の実態確認。`git tag -l 'archive/pr2-test-merge-2026-05-07'` empty で **tag 既消滅判明** (別 session で user 手動削除済み、本 session で確認のみ実施、削除アクション無し)。残存 archive tag 2 件 (`archive/feat-bobrainignore-2026-05-07` / `archive/feat-multi-root-index-2026-05-07`) は feature archive (Phase 2 #5 / #3 完了マーカー)、PII 含まず retain。
+
+**確認結果**:
+- PII commit `9defffa` は `for-each-ref --contains=9defffa` empty = **unreachable**、push --tags しても tag 経路ゼロのため漏出経路ゼロ
+- unreachable commit は git reflog 30 日 (2026-06 中旬目安) 経過後に自然 gc 対象、完全駆除には `git reflog expire --expire=now --all && git gc --prune=now --aggressive` が必要だが本 session 裁量超 (前例 5/13 wrap で auto-mode classifier blocked、user 明示認可要件)
+- bobrain log L638 🟢 表現「user 1 コマンドで解消」は **stale** = 既解消、本 entry で上書き宣言
+
+**決定 (1 件)**:
+- 完全駆除 (`git gc --prune=now --aggressive`) は punt 継続、reflog 30 日経過後の自然消滅で十分 = 漏出経路ゼロ + reflog gc は local file system 駆除なので本人以外には不可視
+
+**地雷**:
+- 🟢 残存 archive tag 2 件 (`feat-bobrainignore` / `feat-multi-root-index`) は PII なしで retain、Phase 2 #5/#3 完了マーカーとして保持価値あり
+- 🟢 reflog 30 日経過 (2026-06 中旬) で commit `9defffa` 自然消滅、その後 `git gc` 不要
+
+**次の 1 タスク**: 本 cleanup entry 後の bobrain 作業優先順位は CLAUDE.md L82 Phase 3 #3 残タスク (Social Preview 画像 upload + GIF 撮影 + Show HN 投稿) に戻る。本 entry は cleanup 完了マーカーのみで Phase 3 進捗を変えない。
+

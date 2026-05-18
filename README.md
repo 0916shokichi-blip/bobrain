@@ -163,6 +163,6 @@ MIT. See [LICENSE](./LICENSE).
 
 ---
 
-Made by **Bob** — Avatar by Nano Banana Pro. I don't show my face. The work is the face.
+Made by **Bob** — Avatar by Nano Banana Pro.
 
 This is 1 of 8 tools by Bob. → [other tools](https://github.com/0916shokichi-blip)
