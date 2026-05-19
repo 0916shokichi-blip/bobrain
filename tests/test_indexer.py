@@ -390,3 +390,41 @@ def test_build_index_removes_chunks_when_file_disappears(monkeypatch):
             if Path(r["path"]).name == "beta.md"
         ]
         assert beta_rows == []
+
+
+def test_build_index_full_rebuild_reembeds_everything(monkeypatch):
+    """`full_rebuild=True` must re-embed every chunk even when nothing changed."""
+    with tempfile.TemporaryDirectory(prefix="bobrain-src-") as src, \
+         tempfile.TemporaryDirectory(prefix="bobrain-data-") as data:
+        src_dir = Path(src)
+        data_dir = Path(data)
+        _write_corpus(src_dir)
+
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+        chunk_count = len(_existing_chunk_ids_for_namespace(data_dir, "diff"))
+        assert chunk_count >= 3, "corpus should produce at least three chunks"
+
+        # On a forced rebuild the spy should see exactly chunk_count texts
+        # passed to embed_texts — proof we bypassed the diff shortcut.
+        captured: list[int] = []
+        real_embed = _indexer.embed_texts
+
+        def spy(texts, data_dir=None):
+            captured.append(len(texts))
+            return real_embed(texts, data_dir=data_dir)
+
+        monkeypatch.setattr(_indexer, "embed_texts", spy)
+        build_index(
+            src_dir,
+            namespace="diff",
+            data_dir=data_dir,
+            full_rebuild=True,
+        )
+
+        assert captured == [chunk_count], (
+            f"full_rebuild should re-embed every chunk ({chunk_count}), got {captured}"
+        )
+        # Final id set still matches the corpus content (chunks are
+        # deterministic from text), so it's the same set as before.
+        ids_after = _existing_chunk_ids_for_namespace(data_dir, "diff")
+        assert len(ids_after) == chunk_count

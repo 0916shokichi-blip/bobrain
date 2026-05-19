@@ -38,8 +38,22 @@ def index(
         "list of exclusions like .venv / node_modules / .git. For per-project "
         "patterns, drop a .bobrainignore file at the root instead.",
     ),
+    full_rebuild: bool = typer.Option(
+        False,
+        "--full-rebuild",
+        help="Re-embed every chunk and rewrite BM25 state from scratch. "
+        "The default path skips unchanged chunks via a content hash diff; "
+        "use this flag when the BM25 sidecar may be out of sync or you "
+        "want a guaranteed-clean rebuild.",
+    ),
 ) -> None:
-    n = build_index(paths, namespace, data_dir, extra_excludes=tuple(exclude or ()))
+    n = build_index(
+        paths,
+        namespace,
+        data_dir,
+        extra_excludes=tuple(exclude or ()),
+        full_rebuild=full_rebuild,
+    )
     roots_str = ", ".join(str(p) for p in paths)
     typer.echo(f"indexed {n} chunks (ns='{namespace}') from {roots_str} at {data_dir}")
 

@@ -432,6 +432,7 @@ def build_index(
     namespace: str,
     data_dir: Path,
     extra_excludes: Iterable[str] = (),
+    full_rebuild: bool = False,
 ) -> int:
     """Re-index all markdown under `roots` for `namespace` (other namespaces untouched).
 
@@ -441,6 +442,10 @@ def build_index(
     skipped entirely — no embedding, no rewrite. For a Vault with 642
     chunks where 20 changed since last index, expect ~3% of the previous
     embed cost.
+
+    Pass ``full_rebuild=True`` to force re-embedding every chunk and
+    rewrite BM25 state from scratch. Useful when the BM25 sidecar is
+    suspected to be out of sync or the table needs to be repacked.
 
     Returns the total chunk count in the namespace after this run (matches
     pre-diff behavior so callers / tests don't have to change).
@@ -456,7 +461,12 @@ def build_index(
         # wasted work.
         new_by_id.setdefault(c.id, c)
     new_ids = set(new_by_id)
-    existing_ids = _existing_chunk_ids_for_namespace(data_dir, namespace)
+    if full_rebuild:
+        # Treat the namespace as if no prior index existed: every chunk
+        # gets re-embedded and every existing row gets replaced.
+        existing_ids: set[str] = set()
+    else:
+        existing_ids = _existing_chunk_ids_for_namespace(data_dir, namespace)
 
     to_add_ids = new_ids - existing_ids
     to_add = [new_by_id[i] for i in to_add_ids]
@@ -464,8 +474,9 @@ def build_index(
     kept = len(existing_ids & new_ids)
 
     if not _progress_disabled():
+        mode = "full-rebuild" if full_rebuild else "diff"
         print(
-            f"  diff: +{len(to_add)} new / -{len(ids_to_delete)} removed / "
+            f"  {mode}: +{len(to_add)} new / -{len(ids_to_delete)} removed / "
             f"={kept} unchanged",
             file=sys.stderr,
             flush=True,
@@ -476,12 +487,20 @@ def build_index(
 
     # Skip the DB / BM25 write entirely if nothing changed. The on-disk
     # state is already correct in that case and rewriting BM25 just to
-    # produce identical bytes is wasted I/O.
-    if not rows and not ids_to_delete:
-        return len(new_chunks)
-
-    with _phase("db-write", n=len(rows) + len(ids_to_delete)):
-        table = _diff_upsert(data_dir, namespace, ids_to_delete, rows)
+    # produce identical bytes is wasted I/O. full_rebuild bypasses this
+    # shortcut by replacing the entire namespace via _upsert_rows.
+    if full_rebuild:
+        with _phase("db-write", n=len(rows)):
+            table = _upsert_rows(
+                data_dir,
+                where=f"namespace = '{_escape_sql(namespace)}'",
+                rows=rows,
+            )
+    else:
+        if not rows and not ids_to_delete:
+            return len(new_chunks)
+        with _phase("db-write", n=len(rows) + len(ids_to_delete)):
+            table = _diff_upsert(data_dir, namespace, ids_to_delete, rows)
     if table is None:
         return 0
     with _phase("bm25"):
