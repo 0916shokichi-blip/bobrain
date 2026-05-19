@@ -26,28 +26,32 @@
 ## 本文
 
 ```
-Hey r/LocalLLaMA — sharing a small thing I built because I kept running into a workflow gap.
+Hey r/LocalLLaMA — sharing what I built because I kept asking my AI assistant questions I'd already answered years ago in some forgotten note or README. There was no way to surface those layers from inside Claude / Cursor.
 
-My notes have been in an Obsidian vault for years (~/Documents/notes/), but every solved engineering problem is buried in the README of some old ~/code/<project>/. I'd hit "I know I wrote this somewhere" and have no good way to search across both with my AI client.
+bobrain is a local MCP server that gives those AI clients access to your existing knowledge — your Obsidian vault, your ~/code/, anything markdown or source — as separate, queryable namespaces. One query hits all of them.
 
-bobrain is a local MCP server that indexes both as separate namespaces and lets Claude / Cursor / Claude Desktop query across all of them at once.
+  Q: "How did I think about retry/backoff in any past project?"
+
+  → bobrain returns:
+    • a chunk from reliability-notes.md (2023)
+    • the actual exponential-backoff implementation from a 2022 repo
+    • a related Slack paste in my Obsidian inbox
 
 **Stack**
-- BM25 (rank-bm25) with MeCab Japanese tokenization out of the box
+- BM25 (rank-bm25) with MeCab Japanese tokenization out of the box — multilingual RAG that actually handles non-English
 - multilingual-e5-large dense embeddings via fastembed (in-process ONNX, ~2.2GB cache after first run)
 - LanceDB for vector + metadata storage
 - Reciprocal rank fusion to combine the two retrievers
 - watchdog for incremental reindex while you edit
 
-Everything runs in-process. No Ollama daemon, no Docker, no cloud round-trips, no telemetry. Embeddings are CPU by default; CoreML / Metal acceleration is on the roadmap.
+Everything runs in-process. No Ollama daemon, no Docker, no cloud round-trips. No telemetry — not even error reporting. Embeddings are CPU by default; CoreML / Metal acceleration is on the roadmap.
 
-**What it does not do, by design**
-- summarize chunks for you. What comes back is the chunk and the file path, nothing else (your LLM does the summarization if it wants to)
-- send your notes anywhere
-- require Obsidian to be running. Plain .md files on disk is enough
+**Two things it deliberately doesn't do**
+- summarize chunks for you. What comes back is the chunk and the file path. When you're trying to find what past-you actually wrote, paraphrase is the enemy.
+- send your data anywhere. The point is your knowledge stays on your disk.
 
-**Where it sits**
-Existing Obsidian MCPs (engraph, obsidian-brain, vaultforge, mcpvault) all index a single vault. bobrain is the multi-root one. Different design center.
+**MCP-first**
+If you're building MCP agents (Claude Code skills, Cursor extensions, custom servers), bobrain is the local memory layer your agent can call via the `search_docs` tool. No cloud round-trip, no vendor lock-in for your own knowledge.
 
 **Install**
 ```

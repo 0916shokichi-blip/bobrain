@@ -751,3 +751,32 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 
 **次の 1 タスク**: 本 cleanup entry 後の bobrain 作業優先順位は CLAUDE.md L82 Phase 3 #3 残タスク (Social Preview 画像 upload + GIF 撮影 + Show HN 投稿) に戻る。本 entry は cleanup 完了マーカーのみで Phase 3 進捗を変えない。
 
+
+## [2026-05-18 20:XX] session wrap | Phase 3 #4 凍結 + Show HN 投稿準備完走
+
+**やったこと**:
+- 本日 4 PR 連続投入: #4 (no-face removal + 新アバター) → #5 (humanizer-ja + PyPI test + user 操作ガイド) → #6 (Phase 3 #4 Lab Pass 実装計画書) → #7 (Phase 3 #4 凍結)
+- branch protection 設定 drift 2 件発見・修正 (required_approving_review_count: 1 削除 + CI context 名 ["CI"] → ["test (3.12)", "test (3.13)"])
+- Lab Pass 実装計画書 (.launch-drafts/phase3-4-implementation-plan.md 221 行) を起草後、user 「本当にこれでいいんか」発話で立ち止まり、最上位 filter (memory feedback_build_only_what_i_use) で再点検 → Phase 3 #4 凍結 pivot
+
+**決定**:
+- Phase 3 #4 = 凍結 (理由: vendor 側労力 + 法務 setup の重さ vs 期待 revenue 月 $50-200 で ROI 低、大学引退後の進路未定で人生 quality 影響薄、philosophy-chat / 創作の余暇優先が user 本人のコミット軸)
+- 計画書は保存 (DR 出力資産 + 将来解凍 trigger 時の起点として永続価値、捨てない)
+- memory `payment_mor_provider_split` は判断軸として保持
+- Show HN 投稿は予定通り (OSS validation の手段で課金と独立)
+- PR 経路: feature branch + squash merge 確定 (main 直 push 禁止 + require_linear_history)
+- helper script `~/.claude/scripts/bobrain-merge-unblock.sh` 経由で PR merge unblock 確立
+
+**未解決 / punt**:
+- 🟡 Show HN 投稿実行 (og.png upload + GIF 撮影 + 投稿、全 user 操作)
+- 🟡 memory `payment_mor_provider_split` の Lab Pass 進化 + 凍結を追記 (17 日 stale 解消)
+- 🟡 memory `avoid_duplicate_session_work` に branch protection drift 検出 N=1 追記
+- 🟢 archive branch 5 件整理 (claude/* 3 件 + feat/* 2 件) は次セッション
+- 🟢 helper script の汎用化 (任意 repo で context 名 resolve) は次セッション
+
+**地雷**:
+- 🟢 bobrain branch protection 設定 drift = startup hook 「既設定済み」を盲信せず実体検証必須 (avoid_duplicate_session_work N+1 適用)
+- 🟢 ターミナル 80 字幅で URL 長い gh api コマンドが折り返しコピペで壊れる (bash_hygiene N+1) → helper script 経由で解決
+- 🟢 「足し算的に計画書 200 行書く」傾向は user 「本当にこれでいいんか」1 行で stop 可能 (user_subtraction_vs_claude_addition_asymmetry 典型例 N=5)
+
+**次の 1 タスク**: Show HN 投稿実行 (og.png upload → 投稿 → 90 分張り付き、phase3-3-user-operations.md 参照)
