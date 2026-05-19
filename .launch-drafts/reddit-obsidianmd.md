@@ -1,9 +1,10 @@
 # r/ObsidianMD 派生 draft（v3 ベース、PKM コミュニティに合わせて調整）
 
-**経緯**: Show HN v3 (`show-hn-final.md`) を r/ObsidianMD 用に調整。
+**経緯**: Show HN v3 (`show-hn-final-v3.md`) を r/ObsidianMD 用に positioning 揃え。
 - PKM サブレディットの作法: 機能スパムは即 downvote、自分のワークフロー文脈で語る、商用感を薄く
 - HN との差: HN は技術スタックが評価軸、r/ObsidianMD は「Obsidian ユーザーとしての困りごと」が評価軸
 - self-promotion 厳格: 投稿前に sub のルール確認必須
+- **v3 positioning 整合**: README/LP hero「The answer you're searching for — you already wrote it, years ago.」と post 冒頭が echo する構造を維持。「半分は Vault、半分は README」の旧具体 → 「years ago に答えてた」軸へ抽象化
 
 ---
 
@@ -26,29 +27,31 @@
 ## 本文
 
 ```
-Hi r/ObsidianMD — I want to share something I built that maybe scratches an itch some of you have too.
+Hi r/ObsidianMD — sharing something I built because I kept asking my AI assistant (via MCP) questions I'd already answered years ago. Half the time the answer was in a note I'd forgotten about, the other half it was in the README of some long-archived repo. There was no way for Claude to surface either.
 
-I've been writing notes in Obsidian for years. But the thing is, half of my "knowledge" isn't in my vault. It's in the READMEs and `docs/` folders of every code project I've worked on. When I'd ask Claude (via MCP) about something, it could only see one of those at a time. I kept hitting "I know I wrote this somewhere" with no way to search both.
+bobrain is a local MCP server that gives your AI client access to those layers. Point it at your vault, ~/code/, anything markdown or source on disk — it indexes each as a separate namespace. One query hits all of them.
 
-So I made bobrain. It's a local MCP server that indexes your Obsidian vault and any number of other folders (like ~/code/) as separate namespaces, and lets your AI client (Claude, Cursor, Claude Desktop) search across all of them in one query.
+  Q: "How did I think about retry/backoff in any past project?"
 
-**How it differs from existing Obsidian MCPs**
+  → bobrain returns:
+    • a chunk from reliability-notes.md (2023)
+    • the actual exponential-backoff implementation from a 2022 repo
+    • a related Slack paste in my Obsidian inbox
 
-I checked the alternatives. Engraph, obsidian-brain, vaultforge, mcpvault, plus the REST API plugin-based servers (mcp-obsidian, obsidian-mcp-tools). They're all Obsidian-only. bobrain indexes the vault and other folders as separate namespaces.
+**Why it's a separate process, not a plugin**
 
-It also doesn't need Obsidian to be running, and doesn't need the Local REST API plugin installed. It just reads .md files from disk. So your vault is just a folder of files, the way it actually is.
+It reads .md files straight from disk. Obsidian doesn't need to be running, and you don't need the Local REST API plugin installed. Your vault is just a folder of files — bobrain treats it that way.
 
 **What's in it**
-- Hybrid search (BM25 + dense embeddings, fused with reciprocal rank fusion)
+- Hybrid search: BM25 + multilingual-e5-large dense embeddings, fused with reciprocal rank fusion
 - Japanese-aware out of the box (MeCab tokenizer, since some of my notes are JP)
 - Multiple folders as separate namespaces, queryable independently or together
 - Watch mode that reindexes as you edit
-- 100% local; no cloud, no telemetry, embeddings run on your machine
+- 100% local, in-process via ONNX. No telemetry. Not even error reporting.
 
-**What it's not**
-- not a chatbot, not a summarizer; it returns chunks with file paths, your LLM does the rest
-- not an Obsidian plugin (it's a separate process)
-- not a replacement for Obsidian's built-in search; it's for AI clients to query your knowledge
+**Two things it deliberately doesn't do**
+- summarize what comes back. You see the raw chunk + file path. When you're trying to recall what past-you actually wrote, paraphrase is the enemy.
+- send your notes anywhere. Embeddings run on your machine. The point is your knowledge stays on your disk.
 
 **How it works in practice**
 ```
@@ -62,37 +65,38 @@ Then point Claude / Cursor / Claude Desktop at it as an MCP server.
 
 **Repo**: https://github.com/0916shokichi-blip/bobrain (MIT, early prototype)
 
-Solo project. Honest disclosure: I wrote the design and tests, Claude Code wrote the implementation. Commits are unsquashed if you want to read the trail.
+Honest disclosure: solo project, I wrote the design and tests, Claude Code wrote the implementation. Commits aren't squashed if you want to read the trail.
 
-Curious to hear how others handle this gap, especially anyone who's been mixing Obsidian with their code workflow. And happy to take any question on the namespace design or why I picked e5-large for embeddings.
+Curious to hear how others handle this gap, especially anyone who's been mixing their Obsidian workflow with their code repos. Happy to take any question on the namespace design, the JP tokenizer choice, or why a separate process beat a plugin for this one.
 
 — ぼぶ
 ```
 
 ---
 
-## r/ObsidianMD 固有の調整
+## r/ObsidianMD 固有の調整（v3 ベース）
 
 | 項目 | HN v3 | r/ObsidianMD 版 | 理由 |
 |---|---|---|---|
-| 冒頭 | "I built bobrain because..." | "Hi r/ObsidianMD — I want to share something..." | sub の作法（やわらかい入り） |
-| 困りごとの具体性 | "my notes and my code aren't in the same place" | "READMEs and docs/ folders of every code project" | PKM ユーザーが想像しやすい例 |
-| 競合言及の重み | 1 段で 4 個列挙 | 「checked the alternatives」と謙虚に + REST API plugin 系も追加 | sub の文脈ではこちらが網羅的 |
-| MCP 用語 | 自然に使う | 説明的に使う（「a separate process」「your AI client」） | r/ObsidianMD は MCP 知らないユーザーも多い |
-| Stack 名 | BM25 + e5 + RRF + MeCab を 1 行 | 4 ブレットに分解 + 用語を控えめに | 技術ヲタ層へではなく PKM 層への訴求 |
-| not 段 | 行動の記述 | 「not a X, not Y」3 連 | 期待値マネジメント |
-| 締め | "Happy to take any question" | "Curious to hear how others handle this gap" | コミュニティへの問いかけ（discussion 誘発） |
-| Disclosure | "Solo project. Design and tests are mine..." | "Honest disclosure: I wrote the design and tests..." | sub の作法（"honest" は r/ObsidianMD で頻出） |
+| 冒頭 | "I keep asking my AI coding assistant questions I already answered years ago" | "Hi r/ObsidianMD — sharing something I built because I kept asking my AI assistant questions I'd already answered years ago" | sub の作法（コミュニティへの呼びかけ）+ v3 核 punch 維持 |
+| 具体例 | "forgotten Obsidian note, or a README from a long-archived repo" | 同（PKM 層に直結） | r/ObsidianMD は Vault 文脈で読むので原文ママで通る |
+| Example query | 3 result の構造体 | 同 | v3 で確立した「過去の自分との対話」を直接書かず体現する核心装置、媒体差で変えない |
+| plugin vs process | 暗示 | 1 段独立（"Why it's a separate process, not a plugin"）| r/ObsidianMD はプラグイン文化、敢えて plugin じゃない理由を明示 |
+| Stack 名 | 1 段に圧縮 | 5 ブレットに展開 | 技術ヲタ層ではなく PKM 層への訴求、用語は控えめ |
+| 「N things doesn't do」 | Two | **Two**（v3 整合）| self-help 三点セット軸 3 弱化、HN/r/LocalLLaMA と統一 |
+| Privacy line | "No telemetry. Not even error reporting." | "100% local, in-process via ONNX. No telemetry. Not even error reporting." | 1 行に集約、独立 punch |
+| 締め | "Happy to dig into the namespace design..." | "Curious to hear how others handle this gap... Happy to take any question on..." | コミュニティへの問いかけ（discussion 誘発）+ Q&A 誘導の二段 |
+| Disclosure | "Solo project. Design and tests are mine..." | "Honest disclosure: solo project, I wrote the design and tests..." | sub の作法（"honest" は r/ObsidianMD で頻出） |
 
 ---
 
 ## anti_patterns 6 カテゴリチェック
 
-- カテゴリ 1: ✅ 思想言明なし
-- カテゴリ 2: ✅ 「Mem.ai」「Notion AI」「Smart Connections」言及なし、競合語彙避ける
-- カテゴリ 3: ✅ "100% local — no cloud, no telemetry" 強化
-- カテゴリ 4: ✅ "便利" "高速" 不在、"not a chatbot, not a summarizer" 棄却の言明
-- カテゴリ 5: ✅ 末尾「— ぼぶ」のみ
+- カテゴリ 1: ✅ 思想言明なし（「映す世界を間違えた」直書きなし、Example query の暗示のみ）
+- カテゴリ 2: ✅ 「Engraph」「obsidian-brain」「vaultforge」「mcpvault」「Mem.ai」「Notion AI」「Smart Connections」競合名指しゼロ
+- カテゴリ 3: ✅ "100% local, in-process via ONNX. No telemetry. Not even error reporting." 独立 punch line
+- カテゴリ 4: ✅ "便利" "高速" 不在、Two things で「summarize しない / send しない」棄却の言明
+- カテゴリ 5: ✅ 末尾「— ぼぶ」のみ、本文中はモード A
 - カテゴリ 6: ✅ アプリツリー横断ルール抵触なし
 
 ---
