@@ -357,6 +357,76 @@ def _escape_sql(value: str) -> str:
     return value.replace("\\", "\\\\").replace("'", "''")
 
 
+def _existing_chunk_ids_for_namespace(
+    data_dir: Path, namespace: str
+) -> set[str]:
+    """Return the chunk IDs currently stored for `namespace`.
+
+    Returns an empty set when the DB doesn't exist yet, when the table is
+    missing, or when the stored vector dim doesn't match the current model
+    (in which case the caller should fall through to a full rebuild via
+    :func:`_diff_upsert`, which drops the table).
+    """
+    db_path = data_dir / "lancedb"
+    if not db_path.exists():
+        return set()
+    db = lancedb.connect(str(db_path))
+    if not _table_exists(db, TABLE_NAME):
+        return set()
+    table = db.open_table(TABLE_NAME)
+    existing_dim = _table_vector_dim(table)
+    if existing_dim is not None and existing_dim != VECTOR_DIM:
+        return set()
+    # Pull just (id, namespace); skipping the vector column keeps this cheap
+    # even for namespaces with thousands of chunks. Filtering in Python is
+    # fine at the realistic scale (<100k rows per Vault).
+    records = table.to_arrow().select(["id", "namespace"]).to_pylist()
+    return {r["id"] for r in records if r["namespace"] == namespace}
+
+
+def _diff_upsert(
+    data_dir: Path,
+    namespace: str,
+    ids_to_delete: set[str],
+    rows_to_add: list[dict],
+):
+    """Apply a namespace-scoped diff to the chunks table.
+
+    Deletes the given IDs (within `namespace`) and inserts new rows.
+    If the existing vector dim doesn't match, drops the whole table and
+    rebuilds from `rows_to_add` (matches `_upsert_rows` migration behavior).
+    """
+    data_dir.mkdir(parents=True, exist_ok=True)
+    db = lancedb.connect(str(data_dir / "lancedb"))
+
+    if _table_exists(db, TABLE_NAME):
+        table = db.open_table(TABLE_NAME)
+        existing_dim = _table_vector_dim(table)
+        if existing_dim is not None and existing_dim != VECTOR_DIM:
+            db.drop_table(TABLE_NAME)
+        else:
+            ns_escaped = _escape_sql(namespace)
+            if ids_to_delete:
+                ids_list = list(ids_to_delete)
+                # Batch large IN clauses; DataFusion handles them, but
+                # 10k-id strings are noisier than necessary.
+                for i in range(0, len(ids_list), 1000):
+                    batch = ids_list[i : i + 1000]
+                    ids_csv = ", ".join(
+                        f"'{_escape_sql(id_)}'" for id_ in batch
+                    )
+                    table.delete(
+                        f"namespace = '{ns_escaped}' AND id IN ({ids_csv})"
+                    )
+            if rows_to_add:
+                table.add(rows_to_add)
+            return table
+
+    if rows_to_add:
+        return db.create_table(TABLE_NAME, data=rows_to_add)
+    return None
+
+
 def build_index(
     roots: Path | Iterable[Path],
     namespace: str,
@@ -365,25 +435,58 @@ def build_index(
 ) -> int:
     """Re-index all markdown under `roots` for `namespace` (other namespaces untouched).
 
-    `roots` may be a single Path or any iterable of Paths; chunks from every
-    root are merged into one batch and the namespace is replaced atomically.
+    Hash-aware diff: only chunks whose ``(path, idx, text)`` hash isn't
+    already in the index get embedded. Removed chunks (existing IDs that
+    are absent from the new scan) are deleted. Unchanged chunks are
+    skipped entirely — no embedding, no rewrite. For a Vault with 642
+    chunks where 20 changed since last index, expect ~3% of the previous
+    embed cost.
+
+    Returns the total chunk count in the namespace after this run (matches
+    pre-diff behavior so callers / tests don't have to change).
     """
     validate_namespace(namespace)
     with _phase("scan"):
-        chunks = build_chunks(roots, namespace, extra_excludes)
-    with _phase("embed", n=len(chunks)):
-        rows = _chunks_to_rows(chunks, data_dir=data_dir)
-    with _phase("db-write", n=len(rows)):
-        table = _upsert_rows(
-            data_dir,
-            where=f"namespace = '{_escape_sql(namespace)}'",
-            rows=rows,
+        new_chunks = build_chunks(roots, namespace, extra_excludes)
+
+    new_by_id: dict[str, Chunk] = {}
+    for c in new_chunks:
+        # In the rare case two scanned chunks collide on hash_id (same
+        # path+idx+text), keep the first; embedding the same row twice is
+        # wasted work.
+        new_by_id.setdefault(c.id, c)
+    new_ids = set(new_by_id)
+    existing_ids = _existing_chunk_ids_for_namespace(data_dir, namespace)
+
+    to_add_ids = new_ids - existing_ids
+    to_add = [new_by_id[i] for i in to_add_ids]
+    ids_to_delete = existing_ids - new_ids
+    kept = len(existing_ids & new_ids)
+
+    if not _progress_disabled():
+        print(
+            f"  diff: +{len(to_add)} new / -{len(ids_to_delete)} removed / "
+            f"={kept} unchanged",
+            file=sys.stderr,
+            flush=True,
         )
+
+    with _phase("embed", n=len(to_add)):
+        rows = _chunks_to_rows(to_add, data_dir=data_dir)
+
+    # Skip the DB / BM25 write entirely if nothing changed. The on-disk
+    # state is already correct in that case and rewriting BM25 just to
+    # produce identical bytes is wasted I/O.
+    if not rows and not ids_to_delete:
+        return len(new_chunks)
+
+    with _phase("db-write", n=len(rows) + len(ids_to_delete)):
+        table = _diff_upsert(data_dir, namespace, ids_to_delete, rows)
     if table is None:
         return 0
     with _phase("bm25"):
         _rebuild_bm25(table, data_dir)
-    return len(chunks)
+    return len(new_chunks)
 
 
 def reindex_file(file_path: Path, namespace: str, data_dir: Path) -> int:
