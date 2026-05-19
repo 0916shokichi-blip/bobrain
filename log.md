@@ -823,3 +823,35 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟡 Show HN 投稿実行は **bobrain 0.2.0 fresh install 動作確認後**、最短 5/25 or 6/1 月火 19-21 JST
 
 **次の 1 タスク**: background task `blfp2lgam` 完走待ち → 結果で fix 経路確定
+
+
+## [2026-05-19 17:30] bobrain 0.2.0 PyPI 公開 | Phase 2 #9 fresh install ブロッカー fix 完了
+
+**経緯**: 16:00 entry の Phase 2 #9 fix を本日中に完走。dogfooding setup 1 時間で発見した 2 件のブロッカーを 0.2.0 で構造解決、Show HN ready 状態に固定化。
+
+**やったこと (PR #10 → #11 → publish)**:
+- PR #10: `fastembed==0.5.1` pin + `fastembed_cache_dir()` helper + `TextEmbedding(cache_dir=...)` 明示 + Phase 2 #9 CLAUDE.md エントリ
+- CI fail (pip-audit fastembed 0.5.1 transitive pillow 10.4 CVE 5 件) → CI workflow に `--ignore-vuln` 5 件追加 (bobrain は pillow 直接 import なし、CVE は画像 decoding 経路で実害なし)
+- PR #11: `src/bobrain/__init__.py` の `__version__` を `importlib.metadata.version("bobrain")` 経由に変更 (release 毎の手動同期廃止)
+- PyPI publish `bobrain==0.2.0` (2 度目)
+- fresh install verify: `uvx --refresh --from bobrain==0.2.0 bobrain search test --ns apptree -k 1` → `Fetching 6 files: 100%` + `(no results)` 正常応答
+- Claude Desktop config を `bobrain==0.2.0` に切替 (TMPDIR + HF_HOME env はそのまま)
+
+**事故 (memory 化済)**:
+- 🔴 PyPI API token を Claude チャット入力欄に貼り付け = session transcript に永久残存 = 流出。即時 revoke + 再発行で復旧。memory `secret_paste_target_terminal_vs_chat` で再発防止知見化、helper script の prompt 文言 + 発火時の 2 段リマインドが防御層
+
+**Show HN ready 状態 (2026-05-19 17:30 時点で固定)**:
+- ✅ PyPI bobrain==0.2.0 公開、fresh install で起動可能
+- ✅ 101 tests pass
+- ✅ Anonymity: noreply 維持、本名 / 個人 email 流出なし
+- ✅ og.png upload 済、GitHub Social Preview 設定済
+- ✅ Show HN v3 投稿テキスト + Reddit 2 媒体 v3 整合 + gate-log.md 蓄積開始
+- ✅ Q&A 弾薬 (qa-arsenal.md) 起草済
+- ⏸ Show HN 投稿実行 = **1 週間 dogfooding 後**、最短 2026-05-25 月 or 6/1 月の 19-21 JST
+
+**未解決 / punt**:
+- 🟡 Day 1-7 dogfooding 開始 (明日朝の /board 後)
+- 🟢 bobrain 0.1.0 を PyPI で yank するか判断 (visitor が `pip install bobrain==0.1.0` 明示する確率は低い、最新 latest は自動的に 0.2.0 取得)
+- 🟢 来週月火に投稿テキスト最終再読 (microadjust の余地、ただし v3 関門通過済なので基本は touchない)
+
+**次の 1 タスク**: 明日朝の Day 1 dogfooding (朝の /board 後に Claude Desktop で 1 query) → 1 週間 termination criteria で投稿判断
