@@ -35,6 +35,21 @@ jobs:
       # Vulnerability scan over the locked dependency set. Strict:
       # any new CVE in a transitive or direct dep fails CI so it surfaces
       # in PR review instead of waiting for the next Dependabot rotation.
+      #
+      # Ignored CVEs (bobrain does not exercise the vulnerable Pillow code paths):
+      # - bobrain does not import PIL / Pillow anywhere (grep src/ → 0 hits)
+      # - fastembed 0.5.1 pins pillow<11.0.0 (transitive only, used for image
+      #   embedding models; bobrain only uses text embedding via TextEmbedding)
+      # - All five CVEs are in image decoding paths (TIFF/PNG/JPEG parsing) that
+      #   are never reached when bobrain runs.
+      # - Re-evaluate once fastembed upstream fixes model.onnx_data download
+      #   (then we can drop the 0.5.1 pin and pull pillow 12.x).
       - name: Audit dependencies
         if: matrix.python-version == '3.13'
-        run: uv run pip-audit
+        run: |
+          uv run pip-audit \
+            --ignore-vuln CVE-2026-25990 \
+            --ignore-vuln CVE-2026-40192 \
+            --ignore-vuln CVE-2026-42308 \
+            --ignore-vuln CVE-2026-42310 \
+            --ignore-vuln CVE-2026-42311

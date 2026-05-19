@@ -24,6 +24,23 @@ MODEL_NAME = "intfloat/multilingual-e5-large"
 VECTOR_DIM = 1024
 TABLE_NAME = "chunks"
 
+
+def fastembed_cache_dir(data_dir: Path | None = None) -> str:
+    """Persistent fastembed cache dir.
+
+    fastembed の default cache は ``tempfile.gettempdir()`` ベースで、macOS では
+    ``/var/folders/.../T/fastembed_cache`` に landing する。これは再起動で揮発する
+    領域なので、~2GB の e5-large weights が毎回消える。``data_dir`` 配下に明示する
+    ことで永続化する (既定 ``~/.bobrain/fastembed_cache``)。
+    """
+    if data_dir is None:
+        data_dir = Path(
+            os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain"))
+        ).expanduser()
+    cache_dir = data_dir / "fastembed_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return str(cache_dir)
+
 # Directories we never want to scan, even when the user points --root at a
 # parent that contains them. Without this, `bobrain index ~/myrepo` happily
 # walks into .venv/ (hundreds of vendored READMEs) or node_modules/.
@@ -200,9 +217,9 @@ def chunks_for_file(file_path: Path, namespace: str) -> list[Chunk]:
     ]
 
 
-def embed_texts(texts: list[str]) -> list[list[float]]:
+def embed_texts(texts: list[str], data_dir: Path | None = None) -> list[list[float]]:
     """Embed documents for indexing. Uses passage_embed so e5 prefixes are applied."""
-    model = TextEmbedding(model_name=MODEL_NAME)
+    model = TextEmbedding(model_name=MODEL_NAME, cache_dir=fastembed_cache_dir(data_dir))
     out: list[list[float]] = []
     bar = tqdm(
         total=len(texts),
@@ -252,11 +269,11 @@ def tokenize(text: str) -> list[str]:
     return tokens
 
 
-def _chunks_to_rows(chunks: list[Chunk]) -> list[dict]:
+def _chunks_to_rows(chunks: list[Chunk], data_dir: Path | None = None) -> list[dict]:
     if not chunks:
         return []
     texts = [c.text for c in chunks]
-    vectors = embed_texts(texts)
+    vectors = embed_texts(texts, data_dir=data_dir)
     return [
         {
             "id": c.id,
@@ -355,7 +372,7 @@ def build_index(
     with _phase("scan"):
         chunks = build_chunks(roots, namespace, extra_excludes)
     with _phase("embed", n=len(chunks)):
-        rows = _chunks_to_rows(chunks)
+        rows = _chunks_to_rows(chunks, data_dir=data_dir)
     with _phase("db-write", n=len(rows)):
         table = _upsert_rows(
             data_dir,
@@ -372,7 +389,7 @@ def build_index(
 def reindex_file(file_path: Path, namespace: str, data_dir: Path) -> int:
     """Re-index a single file. Existing rows for that path (any namespace) are replaced."""
     chunks = chunks_for_file(file_path, namespace)
-    rows = _chunks_to_rows(chunks)
+    rows = _chunks_to_rows(chunks, data_dir=data_dir)
     table = _upsert_rows(
         data_dir,
         where=f"path = '{_escape_sql(str(file_path))}'",

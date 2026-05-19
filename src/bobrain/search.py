@@ -8,7 +8,7 @@ from fastembed import TextEmbedding
 from rank_bm25 import BM25Okapi
 
 from .bm25_state import load_state
-from .indexer import MODEL_NAME, TABLE_NAME, tokenize
+from .indexer import MODEL_NAME, TABLE_NAME, fastembed_cache_dir, tokenize
 
 
 def rrf(rank_lists: list[list[str]], k: int = 60) -> dict[str, float]:
@@ -25,7 +25,7 @@ def search(
     top_k: int = 5,
     namespaces: list[str] | None = None,
 ) -> list[dict]:
-    model = TextEmbedding(model_name=MODEL_NAME)
+    model = TextEmbedding(model_name=MODEL_NAME, cache_dir=fastembed_cache_dir(data_dir))
     q_vec = [float(x) for x in next(iter(model.query_embed([query])))]
 
     db = lancedb.connect(str(data_dir / "lancedb"))
