@@ -1,4 +1,9 @@
-"""Unit tests for the indexer that don't need an embedding model."""
+"""Unit tests for the indexer.
+
+Most tests here are pure-logic (no model load). The diff-index tests at
+the bottom build a tiny 3-file corpus and call ``build_index`` end-to-end
+so they exercise the real fastembed path — same as ``test_watch.py``.
+"""
 from __future__ import annotations
 
 import tempfile
@@ -6,12 +11,15 @@ from pathlib import Path
 
 import lancedb
 
+import bobrain.indexer as _indexer
 from bobrain.indexer import (
     TABLE_NAME,
     VECTOR_DIM,
+    _existing_chunk_ids_for_namespace,
     _table_vector_dim,
     _upsert_rows,
     build_chunks,
+    build_index,
     iter_markdown,
 )
 
@@ -234,3 +242,151 @@ def test_upsert_preserves_data_when_dim_matches():
         table = lancedb.connect(str(data_dir / "lancedb")).open_table(TABLE_NAME)
         ids = sorted(r["id"] for r in table.to_arrow().to_pylist())
         assert ids == ["a-1", "b-1"]
+
+
+# --- diff-index tests (real embed, slow) ---
+
+
+def _write_corpus(src: Path) -> None:
+    (src / "alpha.md").write_text(
+        "# alpha\n\nThe MCP protocol is designed for agents.", encoding="utf-8"
+    )
+    (src / "beta.md").write_text(
+        "# beta\n\n検索アルゴリズムの話。BM25 と dense retrieval。",
+        encoding="utf-8",
+    )
+    (src / "gamma.md").write_text(
+        "# gamma\n\nローカルファースト RAG の設計メモ。", encoding="utf-8"
+    )
+
+
+def test_build_index_is_idempotent_on_rerun():
+    """A second build with no source changes must not alter the row set."""
+    with tempfile.TemporaryDirectory(prefix="bobrain-src-") as src, \
+         tempfile.TemporaryDirectory(prefix="bobrain-data-") as data:
+        src_dir = Path(src)
+        data_dir = Path(data)
+        _write_corpus(src_dir)
+
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+        db = lancedb.connect(str(data_dir / "lancedb"))
+        ids_before = {
+            r["id"]
+            for r in db.open_table(TABLE_NAME).to_arrow().to_pylist()
+            if r["namespace"] == "diff"
+        }
+
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+        db2 = lancedb.connect(str(data_dir / "lancedb"))
+        ids_after = {
+            r["id"]
+            for r in db2.open_table(TABLE_NAME).to_arrow().to_pylist()
+            if r["namespace"] == "diff"
+        }
+
+        assert ids_before == ids_after, "idempotent rerun should not change IDs"
+        assert ids_before, "corpus should produce at least one chunk"
+
+
+def test_build_index_skips_embedding_unchanged_chunks(monkeypatch):
+    """The diff path must not invoke embed_texts when nothing has changed."""
+    with tempfile.TemporaryDirectory(prefix="bobrain-src-") as src, \
+         tempfile.TemporaryDirectory(prefix="bobrain-data-") as data:
+        src_dir = Path(src)
+        data_dir = Path(data)
+        _write_corpus(src_dir)
+
+        # First build does real embedding to populate the table.
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+
+        # Spy on the second build: if diff works, embed_texts is never called.
+        calls: list[int] = []
+        real_embed = _indexer.embed_texts
+
+        def spy(texts, data_dir=None):
+            calls.append(len(texts))
+            return real_embed(texts, data_dir=data_dir)
+
+        monkeypatch.setattr(_indexer, "embed_texts", spy)
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+
+        assert calls == [], (
+            f"unchanged corpus should not trigger embedding, got {calls}"
+        )
+
+
+def test_build_index_only_embeds_added_chunks_after_file_add(monkeypatch):
+    """Adding a single new file must embed only that file's chunks."""
+    with tempfile.TemporaryDirectory(prefix="bobrain-src-") as src, \
+         tempfile.TemporaryDirectory(prefix="bobrain-data-") as data:
+        src_dir = Path(src)
+        data_dir = Path(data)
+        _write_corpus(src_dir)
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+
+        existing_ids = _existing_chunk_ids_for_namespace(data_dir, "diff")
+
+        # Add a new file with content that produces exactly one chunk.
+        (src_dir / "delta.md").write_text(
+            "# delta\n\njust one chunk worth of body.", encoding="utf-8"
+        )
+
+        captured_batches: list[list[str]] = []
+        real_embed = _indexer.embed_texts
+
+        def spy(texts, data_dir=None):
+            captured_batches.append(list(texts))
+            return real_embed(texts, data_dir=data_dir)
+
+        monkeypatch.setattr(_indexer, "embed_texts", spy)
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+
+        # Exactly one embed batch, containing only delta.md text.
+        assert len(captured_batches) == 1, (
+            f"expected one embed batch, got {len(captured_batches)}"
+        )
+        assert len(captured_batches[0]) == 1
+        assert "just one chunk" in captured_batches[0][0]
+
+        # Final state: previous IDs preserved, one new ID added.
+        ids_after = _existing_chunk_ids_for_namespace(data_dir, "diff")
+        assert existing_ids.issubset(ids_after)
+        assert len(ids_after) == len(existing_ids) + 1
+
+
+def test_build_index_removes_chunks_when_file_disappears(monkeypatch):
+    """Deleting a source file must drop its chunks without re-embedding."""
+    with tempfile.TemporaryDirectory(prefix="bobrain-src-") as src, \
+         tempfile.TemporaryDirectory(prefix="bobrain-data-") as data:
+        src_dir = Path(src)
+        data_dir = Path(data)
+        _write_corpus(src_dir)
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+
+        ids_before = _existing_chunk_ids_for_namespace(data_dir, "diff")
+        (src_dir / "beta.md").unlink()
+
+        calls: list[int] = []
+        real_embed = _indexer.embed_texts
+
+        def spy(texts, data_dir=None):
+            calls.append(len(texts))
+            return real_embed(texts, data_dir=data_dir)
+
+        monkeypatch.setattr(_indexer, "embed_texts", spy)
+        build_index(src_dir, namespace="diff", data_dir=data_dir)
+
+        assert calls == [], "deletions alone should not invoke embed_texts"
+
+        ids_after = _existing_chunk_ids_for_namespace(data_dir, "diff")
+        assert ids_after.issubset(ids_before)
+        assert len(ids_after) < len(ids_before)
+
+        # Verify the rows for beta.md are actually gone.
+        table = lancedb.connect(str(data_dir / "lancedb")).open_table(TABLE_NAME)
+        beta_rows = [
+            r
+            for r in table.to_arrow().to_pylist()
+            if Path(r["path"]).name == "beta.md"
+        ]
+        assert beta_rows == []
