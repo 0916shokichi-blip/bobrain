@@ -927,3 +927,34 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟢 README "First-run cost" 表は L4 Playable Gate を通すか別判定 (Install セクション内の expectations 補足、業界平均値 trigger は踏まない想定だが安全側で gate 通す選択肢あり)
 
 **次の 1 タスク**: re-index 完了通知待ち → 検索 verify (Day 0 観察と並列)
+
+
+## [2026-05-19 19:00] indexer 進捗 feedback 改善 | non-TTY 黙り問題 fix
+
+**経緯**: Day 0 apptree re-index が **55 分間 完全に黙ったまま** 走り続け、user が「まだやってんの」と確認する事態に。`indexer.py:239 _progress_disabled` が `sys.stderr.isatty()` を見ていたため、Claude Code Bash / shell script / launchd 等の non-TTY 環境では tqdm が完全 OFF = ハングと区別不能。
+
+**事実**:
+- `embed_texts` の tqdm bar は `disable=_progress_disabled()` で抑制
+- `_progress_disabled` 旧実装: `BOBRAIN_QUIET` セット または stderr が non-TTY → True
+- 結果: Claude/script 経由で長時間 embed すると **ゼロ feedback** = 死活判定不可
+
+**修正 (`src/bobrain/indexer.py`)**:
+- `_progress_disabled` を **opt-out 型**に反転: `BOBRAIN_QUIET in {1, true, yes, on}` のみ True、それ以外 (default + non-TTY) は False
+- tqdm に `mininterval=5.0, miniters=1` 追加 = non-TTY 環境でも 5 秒ごとに進捗行を出す (tqdm の line-buffered fallback)
+- `tqdm(..., leave=True)` に変更 = 完走後の bar を残す (旧 `leave=False` は scroll で消える)
+- `_phase` context manager に **開始 announcement** 追加: `embed: starting (350 items)...` を `flush=True` で即出力 → tqdm が buffered な環境でも phase 開始が見える
+- 完了 print にも `flush=True` 追加
+
+**動作確認**:
+- `BOBRAIN_QUIET=1` → 進捗 OFF (旧 behavior と互換)
+- `BOBRAIN_QUIET=unset / on / true / yes` → 進捗 ON
+- 55 分黙る → 5 秒ごとに `embed: 50/642 [...] N items/s` 形式の line を吐く想定
+
+**設計判断**:
+- non-TTY 検出は廃止 (TTY 検出ベースの自動抑制は user 苦痛の元、明示 opt-out のみ採用)
+- progress を default ON にしても fastembed の verbose ログより遥かに軽い、CI / Show HN visitor 双方に有用
+- `feedback_build_only_what_i_use` 最上位 filter 通過 = user 本人が Day 0 で踏んだ実 pain point の修正
+
+**関連**:
+- memory `bobrain_pypi_launch` 地雷 11 候補: 「`bobrain index` は手動明示実行、自然に stale 化」だけでなく「実行中も死活判定不能」を追記候補
+- Phase 2 #12 (差分 index) 完成後は embed 量が劇減 = この feedback 問題は副次的に解消するが、cold start / 初回 build は変わらず重いので本 fix は維持
