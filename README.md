@@ -61,7 +61,7 @@ uv sync
 | --- | --- | --- |
 | Model download | ~2.2 GB | `multilingual-e5-large` ONNX weights, fetched once into `~/.bobrain/fastembed_cache/` |
 | Memory peak | ~12 GB | e5-large runs on CPU (1024-dim, 24-layer). Expect a transient spike during embed |
-| Indexing time | ~1.4–2.4 sec/chunk | CPU inference, Apple Silicon. ~1,000 chunks ≈ 30 minutes |
+| Indexing time | ~3–6 sec/chunk | CPU inference, Apple Silicon (sustained loads slow due to thermal throttling). ~1,000 chunks ≈ 60–90 minutes on the first run; **subsequent runs only re-embed changed chunks** (typically seconds for daily updates) |
 | Disk after indexing | ~50 MB / 1,000 chunks | LanceDB columnar storage under `~/.bobrain/lancedb/` |
 
 Subsequent `bobrain index` runs reuse the cached weights, but currently **re-embed every chunk in the namespace** (full rebuild — incremental hash-based diff is on the roadmap). `bobrain watch` is the only incremental path today.
