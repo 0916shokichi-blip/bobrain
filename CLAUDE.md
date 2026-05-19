@@ -48,10 +48,13 @@
 - #6 chunking が文字数ベース → Markdown heading 単位 chunking
 - #7 e5-large が CPU で 1.4–2.4 sec/chunk → CoreML provider で 5-10x の余地
 - **#8 auto-sops/ ディレクトリ監視 + Reflection scheduler hook**（2026-05-09 W19 追加）— Photo-agents L3 (`photoagents/skills/`) + L4 (scheduler reflection) 概念移植。Claude Code SessionEnd hook で「成功要因 / コードパターン / 解決手順を SOP 形式で抽出 → `<vault>/auto-sops/YYYY-MM-DD-<topic>.md` へ自動書き込み」を Reflection 化。bobrain は新規 namespace `auto-sops` として index 監視対象に追加 → 次回 Claude Code セッションで過去成功体験が L3 メモリとして検索可能。Phase 2 #6 完成後の積み上げ候補。詳細は memory `agent_memory_layer_architecture.md` 参照
-- **#9 fresh install ブロッカー 2 件**（2026-05-19 dogfooding 発見、Show HN 投稿前 fix 必須） — 詳細は log.md `[2026-05-19 16:00]` エントリ
-  - **A. macOS `/tmp` 揮発で fastembed cache 全消失** — fastembed default cache = `tempfile.gettempdir()` = `/var/folders/.../T/fastembed_cache`、再起動で消失。fix: `TextEmbedding(cache_dir=...)` で `~/.bobrain/fastembed_cache` 等永続領域に明示
-  - **B. fastembed が `model.onnx_data` を download し損ねる** — HF `qdrant/multilingual-e5-large-onnx` が ONNX External Data 形式 (model.onnx 545KB + model.onnx_data 2.1GB)、fastembed 0.6+ の download list から `model.onnx_data` が漏れる。fix 候補 (検証中): `pyproject.toml` で `fastembed==0.5.1` pin (旧 logic に戻す、最短)。fail なら `bobrain setup` CLI で `huggingface_hub.snapshot_download` 経路
-  - **影響**: bobrain 0.1.0 を pipx install した新規 user は fresh install で起動できない = Show HN 致命的、bobrain 0.2.0 で fix してから投稿
+- ~~#9 fresh install ブロッカー 2 件~~ → **完了 (2026-05-19、bobrain 0.2.0 PyPI 公開済)**:
+  - **A. macOS `/tmp` 揮発で fastembed cache 全消失** → `fastembed_cache_dir()` helper を `indexer.py` に追加、`TextEmbedding(cache_dir=DATA_DIR / "fastembed_cache")` で `~/.bobrain/fastembed_cache` に永続化
+  - **B. fastembed が `model.onnx_data` を download し損ねる** → `pyproject.toml` で `fastembed==0.5.1` pin (旧 download logic で 6 ファイル全 download)。verify: isolated venv + fresh install で 2131.8 MB の `model.onnx_data` 完走 + 1024 dims 推論 OK + 101 tests pass
+  - **副次 fix**: `src/bobrain/__init__.py` の `__version__` を `importlib.metadata.version("bobrain")` 経由に変更 = `pyproject.toml` が single source of truth、release 毎の手動同期不要
+  - **副次 fix**: CI `pip-audit` で fastembed 0.5.1 transitive pillow 10.4 の CVE 5 件 (CVE-2026-25990 / 40192 / 42308 / 42310 / 42311) を ignore (bobrain は pillow 直接 import なし、画像 decoding 経路に到達不可)
+  - **fresh install 実機検証**: `uvx --refresh --from bobrain==0.2.0 bobrain search test --ns apptree -k 1` → `Fetching 6 files: 100%` + `(no results)` 正常応答
+  - **詳細**: log.md `[2026-05-19 16:00]` + PR #10 + #11
 
 ### ドメインメモ
 
