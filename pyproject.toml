@@ -1,6 +1,6 @@
 [project]
 name = "bobrain"
-version = "0.2.0"
+version = "0.3.0"
 description = "A local-first multi-source RAG MCP server — search across Obsidian vaults, Git repos, and PDFs from Claude / Cursor / Claude Desktop."
 readme = "README.md"
 authors = [

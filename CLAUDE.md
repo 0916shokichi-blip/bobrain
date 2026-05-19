@@ -55,6 +55,14 @@
   - **副次 fix**: CI `pip-audit` で fastembed 0.5.1 transitive pillow 10.4 の CVE 5 件 (CVE-2026-25990 / 40192 / 42308 / 42310 / 42311) を ignore (bobrain は pillow 直接 import なし、画像 decoding 経路に到達不可)
   - **fresh install 実機検証**: `uvx --refresh --from bobrain==0.2.0 bobrain search test --ns apptree -k 1` → `Fetching 6 files: 100%` + `(no results)` 正常応答
   - **詳細**: log.md `[2026-05-19 16:00]` + PR #10 + #11
+- ~~**#12 hash-based 差分 index**~~ → **完了 (2026-05-19、bobrain 0.3.0)**:
+  - PR #15: `_existing_chunk_ids_for_namespace` / `_diff_upsert` / `build_index` 差分化
+  - PR #16: `--full-rebuild` flag (escape hatch、BM25 不整合疑い時の opt-in)
+  - PR #14: `_progress_disabled` opt-out 反転 + tqdm mininterval = non-TTY 進捗可視化
+  - 実機検証 (Day 0 apptree reindex): diff `+1325 / -46 / =260` で 260 chunks 分の embed skip 確認、ただし vault 25 日 stale で 1325 new = 絶対値は重く完走 ~2 時間。**根本 bottleneck は e5-large CPU 5 sec/chunk** で diff 化単独では解消せず、Phase 2 #7 (CoreML) / #13 (e5-base) が次の壁
+  - 副次: README "First-run cost" 表を実測 ~3-6 sec/chunk に補正 (旧 1.4-2.4 は過剰約束)
+  - **以下は元計画 (記録保持)**:
+
 - **#12 hash-based 差分 index** (2026-05-19 dogfooding Day 0 で発覚、Codex 物的証拠で確定 = 最大の改善余地):
   - **発覚**: `bobrain index ~/Documents/Obsidian\ Vault -n apptree` 実行で **メモリ peak 11.8 GB / 約 12 分** = 642 ファイル中 20 ファイル変更でも全 namespace 再 embed。LanceDB 側 mtime は再 index 後も 4/24 のままで「全 embed → 一括書き換え」型と矛盾しないがメモリ peak で確定
   - **物的証拠** (Codex 評価): `indexer.py` の `build_index` は (1) `build_chunks` 全 ファイル → chunks (2) `_chunks_to_rows` 全 chunks embed (3) `_upsert_rows` で `namespace='X'` 全削除 → 全挿入。`hash_id(path, idx, text)` は chunk identifier に使われているが skip ロジック未実装
