@@ -780,3 +780,46 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟢 「足し算的に計画書 200 行書く」傾向は user 「本当にこれでいいんか」1 行で stop 可能 (user_subtraction_vs_claude_addition_asymmetry 典型例 N=5)
 
 **次の 1 タスク**: Show HN 投稿実行 (og.png upload → 投稿 → 90 分張り付き、phase3-3-user-operations.md 参照)
+
+
+## [2026-05-19 16:00] dogfooding setup | Phase 2 ブロッカー 2 件発見、Show HN punt
+
+**経緯**: Show HN 直前 (本日 19-21 JST 想定) に user「俺、bobrain 普段使ってなくね」発話 = memory `feedback_build_only_what_i_use` 最上位 filter 発火。1 週間 dogfooding に punt。setup 中に 2 件の構造バグ発見、来週月火 5/25 or 6/1 投稿前に fix 必須。
+
+**やったこと**:
+- Claude Desktop config に bobrain MCP server 追加 (`/opt/homebrew/bin/uvx --from bobrain==0.1.0 bobrain serve`、TMPDIR + HF_HOME env 経由で永続キャッシュ)
+- CLI 直接実行で初回 ONNX 取得を完走、Phase 2 ブロッカー 2 件発見
+- Helper script `~/.claude/scripts/bobrain-cache-init.sh` 整備 (永続 TMPDIR + curl 直接 download workaround)
+
+**発見ブロッカー**:
+
+### ブロッカー A: macOS `/tmp` 揮発で fastembed cache 全消失
+- fastembed default cache = `tempfile.gettempdir()` = macOS では `/var/folders/.../T/fastembed_cache`
+- macOS 再起動で `/var/folders/.../T/` 揮発 → 2.2GB cache 消失 → 起動失敗
+- 回避: bobrain MCP env に `TMPDIR=$HOME/.cache/bobrain-tmp` 渡す (Claude Desktop config 修正済)
+- **fix 候補**: bobrain 側で `TextEmbedding(cache_dir=$XDG_CACHE_HOME/bobrain/fastembed)` 明示 (~/.bobrain/ 配下推奨)
+
+### ブロッカー B: fastembed が `model.onnx_data` を download し損ねる
+- HuggingFace `qdrant/multilingual-e5-large-onnx` repo が ONNX External Data 形式 (model.onnx 545KB 計算グラフ + model.onnx_data 2.1GB 重み)
+- fastembed の download list に `model.onnx_data` が含まれてない → `0cf1...incomplete` 0byte 残置 → ONNX Runtime load 失敗 ("External data path does not exist")
+- fastembed warning: "intfloat/multilingual-e5-large now uses mean pooling instead of CLS embedding. consider pinning fastembed==0.5.1"
+- 回避 (現在): `curl -L https://huggingface.co/qdrant/multilingual-e5-large-onnx/resolve/main/model.onnx_data` で手動配置
+- **fix 候補 A (最短)**: `pyproject.toml` で `fastembed==0.5.1` pin → 旧 logic に戻す
+- **fix 候補 B**: `bobrain setup` CLI 追加して post-install で `huggingface_hub.snapshot_download` 実行
+- **fix 候補 C**: fastembed upstream PR (時間不確定)
+
+**現状の影響**:
+- bobrain 0.1.0 を `pipx install bobrain` した新規 user は **fresh install で起動できない**
+- Show HN したら "doesn't even start" コメントで埋まる = punt 判定の根拠
+
+**進行中 (本セッション)**:
+- fastembed==0.5.1 pin で fresh download → inference 動くか実機検証 (background task `blfp2lgam`、~2.1GB download 中)
+- 検証通れば pyproject.toml 1 行修正 + 0.2.0 release → 来週月火 Show HN
+
+**未解決 / punt**:
+- 🔴 fastembed==0.5.1 検証結果待ち (本日中判明)
+- 🔴 検証 fail なら fix 候補 B (`bobrain setup` CLI 追加) へ pivot
+- 🟡 CLAUDE.md Phase 2 #6/#7/#8 に #9 「fresh install ブロッカー 2 件」追加
+- 🟡 Show HN 投稿実行は **bobrain 0.2.0 fresh install 動作確認後**、最短 5/25 or 6/1 月火 19-21 JST
+
+**次の 1 タスク**: background task `blfp2lgam` 完走待ち → 結果で fix 経路確定
