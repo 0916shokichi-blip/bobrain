@@ -855,3 +855,75 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟢 来週月火に投稿テキスト最終再読 (microadjust の余地、ただし v3 関門通過済なので基本は touchない)
 
 **次の 1 タスク**: 明日朝の Day 1 dogfooding (朝の /board 後に Claude Desktop で 1 query) → 1 週間 termination criteria で投稿判断
+
+
+## [2026-05-19 18:10] dogfooding Day 0 観察 | apptree index 25 日 stale 発覚
+
+**経緯**: Day 0 動作確認のため Claude Desktop で「映す世界を間違えた」を全 namespace 検索 → 上位 3 件 score 0.016 と低く、狙った apptree wiki の `[[映す世界を間違えた]]` entity が **ヒットしなかった**。原因 audit で 25 日 stale 発覚 = bobrain 構造的脆弱性。
+
+**事実**:
+- `~/.bobrain/lancedb/chunks.lance` mtime = 2026-04-24 19:18 (apptree 最終 index 時刻)
+- `/Users/higashishota/Documents/アプリツリー/pages/concepts/映す世界を間違えた.md` 存在確認 ✅
+- 4/24 以降 vault に 20+ ファイル更新あり
+- = bobrain は実用上「過去の自分の足跡」を狙っても **直近 1 ヶ月分の自分の更新を引けない**
+
+**現在進行中**:
+- `uv run bobrain index ~/Documents/アプリツリー -n apptree` で apptree namespace を full re-index 実行 (~10 分目安、CPU embedding 1.4-2.4 sec/chunk × ~350 chunks)
+- 完了後 Claude Desktop で再検索 → `映す世界を間違えた` entity が上位 3 件に出るか verify
+
+**Phase 2 #11 として CLAUDE.md に記録 (本日 18:00 追加)**:
+- 案 A: `bobrain watch` の launchd 化 (推奨、ログイン時起動 + 4 namespace 並列)
+- 案 B: 日次 / 週次の launchd routine `bobrain-reindex-all`
+- 案 C: 手動運用継続 + README に明記
+- Day 7 判定で A/B/C 確定
+
+**dogfooding 観察軸 (memory `bobrain_pypi_launch` の地雷リスト拡張)**:
+- 地雷 11 (新規): index は手動明示実行が必要、自然に stale 化する。watch mode を user が起動継続しないと止まる
+- Show HN 投稿後の新規 user も同じ罠を踏む = Phase 2 #11 fix は実質 fresh user 体験のための致命課題
+
+**未解決 / punt**:
+- 🔴 re-index 完了後の再検索で `映す世界を間違えた` ヒットが取れるか verify (background task `bypvk3tu7` 完了待ち)
+- 🟡 取れたら Phase 2 #11 案 A の実装案を別 PR で起草 (本日中 or 明日朝)
+- 🟢 取れなかったら chunking 仕様 (Phase 2 #6 heading chunking) が真因の可能性、別軸で深掘り
+
+**次の 1 タスク**: re-index 完了通知待ち → 再検索 verify
+
+
+## [2026-05-19 18:30] Codex 仮説検証 | 差分 index 未実装の物的証拠
+
+**経緯**: Day 0 で apptree re-index がメモリ peak 11.8 GB / 約 12 分の重さ → Codex (gpt-5.2-codex via MCP) に bobrain 効率評価を投げた結果、3 つの改善余地を提示された。物的証拠で hash-based 差分化未実装が「最大の穴」と判定。
+
+**Codex 評価 (3 候補)**:
+1. **Apple Silicon CoreML 未使用** = 既知 (Phase 2 #7、CoreML provider で 5-10x)
+2. **e5-large 過剰スペック?** = base 版 (768 次元 / ~500 MB) で品質維持できれば 3-5x 速、メモリ 1/4
+3. **差分 index になってない可能性** = 真因の最有力
+
+**物的証拠 (差分 index 未実装)**:
+- `indexer.py:360-386 build_index`: (1) `build_chunks` で全 markdown → chunks (2) `_chunks_to_rows` で **全 chunks embed** (3) `_upsert_rows` で `namespace='X'` 全削除 → 全挿入
+- `hash_id(path, idx, text)` (L174-179) は chunk identifier に使われるが skip ロジックなし = 同 id でも毎回 re-embed
+- LanceDB 側 mtime が 4/24 のままなのも「全 embed → 一括書き換え」型と整合 (一括 commit のため file mtime は最後の write 時刻 = 古いまま)
+- メモリ peak 11.8 GB = e5-large CPU 推論を 642 chunks 連続実行した時のヒープ占有 = **全部 embed し直した証拠**
+
+**改善効果見積もり**:
+- 642 chunks 中 20 ファイル分 (~3%) しか変わらない場合: 12 分 → 約 30 秒 (30x+)
+- CoreML provider (#7、5-10x) より差分化 (#12、30x+) の方が改善幅大きい
+- 新規 user の Show HN 体験でも効く (初回 cold start は変わらないが 2 回目以降の `bobrain index` 体感が激変)
+
+**実装方針 (Phase 2 #12 として CLAUDE.md 記録済)**:
+1. 既存 LanceDB から `namespace='X'` の (id) 一覧 fetch
+2. 新規 chunks の id 計算 (`hash_id` は text 含む sha256 なので変更検出可)
+3. diff: 既存のみ → delete / 新規のみ → embed + insert / 両方 → no-op
+4. BM25 state は全 tokenize 再ビルド (embed 比軽い、~数秒)
+
+**User 新優先順 (本ターン受領)**:
+1. README に初回 indexing コスト表追加 = 期待値合わせ → 本ターン実装済 (`README.md "First-run cost"` セクション)
+2. 差分 index の挙動確認 = 真因確定 → 本ログ
+3. CoreML provider (Phase 2 #7、既存)
+4. e5-base option (Phase 2 #13 として CLAUDE.md 追加)
+
+**未解決 / punt**:
+- 🔴 Phase 2 #12 (差分 index 化) 実装 = Show HN 投稿後の最優先
+- 🟡 Phase 2 #13 (e5-base option) の品質検証 = #12 完成後
+- 🟢 README "First-run cost" 表は L4 Playable Gate を通すか別判定 (Install セクション内の expectations 補足、業界平均値 trigger は踏まない想定だが安全側で gate 通す選択肢あり)
+
+**次の 1 タスク**: re-index 完了通知待ち → 検索 verify (Day 0 観察と並列)

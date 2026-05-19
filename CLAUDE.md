@@ -55,6 +55,31 @@
   - **副次 fix**: CI `pip-audit` で fastembed 0.5.1 transitive pillow 10.4 の CVE 5 件 (CVE-2026-25990 / 40192 / 42308 / 42310 / 42311) を ignore (bobrain は pillow 直接 import なし、画像 decoding 経路に到達不可)
   - **fresh install 実機検証**: `uvx --refresh --from bobrain==0.2.0 bobrain search test --ns apptree -k 1` → `Fetching 6 files: 100%` + `(no results)` 正常応答
   - **詳細**: log.md `[2026-05-19 16:00]` + PR #10 + #11
+- **#12 hash-based 差分 index** (2026-05-19 dogfooding Day 0 で発覚、Codex 物的証拠で確定 = 最大の改善余地):
+  - **発覚**: `bobrain index ~/Documents/Obsidian\ Vault -n apptree` 実行で **メモリ peak 11.8 GB / 約 12 分** = 642 ファイル中 20 ファイル変更でも全 namespace 再 embed。LanceDB 側 mtime は再 index 後も 4/24 のままで「全 embed → 一括書き換え」型と矛盾しないがメモリ peak で確定
+  - **物的証拠** (Codex 評価): `indexer.py` の `build_index` は (1) `build_chunks` 全 ファイル → chunks (2) `_chunks_to_rows` 全 chunks embed (3) `_upsert_rows` で `namespace='X'` 全削除 → 全挿入。`hash_id(path, idx, text)` は chunk identifier に使われているが skip ロジック未実装
+  - **改善効果見積もり**: 642 chunks / 20 変更 (3%) → 30 秒。1042 chunks / 30 変更 → 1 分。CoreML (#7) より改善幅大きい (CoreML は 5-10x、差分化は 30x+)
+  - **実装案**: (1) 既存 LanceDB から `namespace='X'` の全 (id, path, text_hash) fetch (2) 新規 chunks の id 計算 (`hash_id` 既存) (3) diff: 既存のみ → delete / 新規のみ → embed + insert / 両方 → no-op (4) BM25 は state ファイル全 tokenize 再ビルド (embed 比軽い)
+  - **互換**: 既存 LanceDB schema 維持 (id, text, path, namespace, vector)、id が text 含む sha256 なので text 変更 = id 変更で自然に diff 化
+  - **緊急度**: Show HN 投稿前は手 (#1 README コスト表で期待値合わせ済み)、投稿後の Phase 2 最優先
+  - **詳細**: log.md `[2026-05-19 18:30]` Codex 仮説検証 + 物的証拠
+
+- **#13 e5-base モデル option 化** (2026-05-19 dogfooding Day 0 で Codex 提案、中期):
+  - **背景**: 現状 `multilingual-e5-large` のみ (1024 次元、~2.2 GB、推論 1.4-2.4 sec/chunk、メモリ ~12 GB)。e5-base は 768 次元、~500 MB、~3-5x 速い + メモリ 1/4
+  - **検証必要**: 日本語品質。bobrain は日本語 docs 中心 = base 版で「過去の自己との再会」体験 (vision.md) が劣化しないか実機テスト必須
+  - **実装コスト**: CLI に `--model` flag 追加、LanceDB schema migration (1024 → 768 vector dim auto-migration は `_upsert_rows` の `existing_dim != VECTOR_DIM` で既対応)
+  - **採用条件**: 検証で品質 90%+ 維持 (top-5 recall ベース) なら採用、それ未満なら見送り
+  - **緊急度**: 中期、#12 完成後
+
+- **#11 index 鮮度自動維持** (2026-05-19 dogfooding Day 0 で発覚、Show HN 投稿後の roadmap、緊急度は dogfooding 続行可能性次第):
+  - **発覚**: apptree namespace の最終 index = 2026-04-24、その後 vault に 20+ ファイル更新あり = **25 日 stale**。検索で `[[映す世界を間違えた]]` (concept 中心 entity) を引いても score 0.016 の薄いヒットで関連性低い chunk しか返らなかった。`cross_project_philosophy` の核「過去の自分の足跡」軸を毀損する構造的脆弱性
+  - **原因**: bobrain `index` コマンドは明示実行が必要、watch mode は user が起動を継続しないと止まる
+  - **fix 候補 (3 案)**:
+    - **A. `bobrain watch` の launchd 化** (推奨): ログイン時起動 + 4 namespace 並列 watch、incremental reindex で常時鮮度維持。`~/Library/LaunchAgents/com.higashishota.bobrain-watch.plist` 新規
+    - **B. 日次 / 週次の launchd routine `bobrain-reindex-all`**: 全 namespace を cron 的に re-index。incremental に頼らない、ただし毎回フル re-embed (350 chunks × ~2 sec = 12 分) で重い
+    - **C. 手動運用継続 + README に「定期 `bobrain index` 推奨」を明記**: lowest-cost、ただし新規 user 体験で同じ stale 問題を踏む
+  - **本 dogfooding 期間 (Day 1-7)**: 手動 re-index で習慣化、Day 7 判定で A/B/C を確定
+  - **詳細**: log.md `[2026-05-19 18:10]` Day 0 観察
 
 ### ドメインメモ
 
