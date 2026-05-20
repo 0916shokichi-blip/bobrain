@@ -23,7 +23,8 @@
 
 - **dogfooding 主経路 = MCP server 起動 + Claude Desktop / Claude Code / Cursor から自然言語 query** (例: 「過去の自分が retry/backoff についてどう考えてた?」)。CLI 直叩き (`bobrain search "..."`) は debug / scripting 用、daily use の主経路じゃない。本セッション (Claude Code) では `mcp__bobrain__search_docs` tool が既に登録済 = 即試せる
 - 開発再開時は `Documents/マネタイズ/log.md` の末尾を読んで最新状態を把握
-- **Phase 1 完了 / Phase 3 #1 + #2 + #3 完了**（LP デプロイ + PyPI 0.1.0 公開済み、2026-04-27）。次は **Phase 3 #3 残タスク: GIF 撮影 + Social Preview 画像 + Show HN/Reddit 投稿** → **Phase 3 #4 決済**（NAWABARI / GMO / Polar.sh、人間アクション含む）
+- **2026-05-20 fold (寝かせる候補)**: dogfooding gate 失敗で `/fold bobrain` 確定 = touch しない碇 (dependabot 除く)、Phase 2-4 残タスクは全凍結、Show HN 永久投稿なし。詳細は README 末尾「🗂 状態: Fold」+ `~/.claude/fold-ledger.md` 2026-05-20 entry。再走査 2026-11-20
+- **以前の Phase 進捗**（参考、fold で凍結済）: Phase 1 完了 / Phase 3 #1 + #2 + #3 完了（LP デプロイ + PyPI 0.3.0 公開済み、2026-05-19）。Phase 3 #3 残タスク (GIF / Social Preview / Show HN/Reddit 投稿) と Phase 3 #4 決済はすべて fold で永久撤回
 - LanceDB ≥ 0.30 で `db.list_tables()` は `ListTablesResponse(tables=[...])` wrapper、`.tables` 経由（`_table_exists` ヘルパ済み）
 - 競合: [[Knowledge-RAG]]（最も近い）, [[Claude-Context]] (Zilliz, コード特化), [[Cognee]]（大規模・クラウド寄り）
 
@@ -129,7 +130,7 @@
 4. ~~LP の `pipx install bobrain` 切替~~ → **完了 (2026-04-27)**: `docs/index.html:880` と `README.md:36-43` の git+https 形式を `pipx install bobrain` / `uvx bobrain` に置き換え済み
 5. ~~LP デプロイ~~ → **完了**（GitHub Pages 公開済み: <https://0916shokichi-blip.github.io/bobrain/>、4/26）
 6. ~~共通フッター規格 (N=1) 適用~~ → **完了 (2026-04-28)**: README.md と docs/index.html の footer を `bob_persona.md` の共通フッター規格に揃えた。Avatar by Nano Banana Pro の理由付き disclosure + `1 of 8 tools` クロスリンク（暫定 link 先 = GitHub プロフィール、bob-universe デプロイ後に bob_persona.md 1 箇所更新で全アプリ伝播）
-7. **Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿** → 投稿前の最終ゲート + 投稿後の if-then は本ファイル「**Show HN 投稿の判断ロジック**」参照（後段）
+7. ~~Show HN / Reddit r/LocalLLaMA / r/ObsidianMD 投稿~~ → **永久撤回 (2026-05-20 fold)**: dogfooding gate 失敗 (target persona と作者本人 zero overlap + Claude reflex N=2) で `feedback_build_only_what_i_use` 不整合確定 → 投稿しない。`.launch-drafts/show-hn-final-v3.md` は資産 retain (将来 transcribe-bird 等 OSS Show HN で経路再利用可)。後段「Show HN 投稿の判断ロジック」セクションは参考資料として retain (他 OSS Show HN で再利用可)
 
 ### Phase 3 #4（決済）— **凍結 (2026-05-18)**
 
