@@ -958,3 +958,34 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 **関連**:
 - memory `bobrain_pypi_launch` 地雷 11 候補: 「`bobrain index` は手動明示実行、自然に stale 化」だけでなく「実行中も死活判定不能」を追記候補
 - Phase 2 #12 (差分 index) 完成後は embed 量が劇減 = この feedback 問題は副次的に解消するが、cold start / 初回 build は変わらず重いので本 fix は維持
+
+
+## [2026-05-19 22:00] 0.3.0 release + secret leak guardrail 同日固定化
+
+**0.3.0 release** (PR #18 merged): pyproject version bump + CHANGELOG.md 新設 + CLAUDE.md Phase 2 #12 完了マーク。後続 publish 前に **PR #14 (progress fix) merge 待ち** (BEHIND 状態、user force-push 必要)。
+
+**secret leak 経路 B 検出 + 構造防御** (2026-05-19 21:50 N=1):
+- Claude が config を `cat` した出力に GitHub PAT が含まれ session transcript に永久残存
+- 即時復旧: user による旧 token Delete + 新 PAT 生成 (進行中)
+- 構造防御 (b ガードレール化): `pre-tool-guard.py` に `SECRET_BEARING_FILES` list + 経路 B 検出 regex (write 系 verb のみ allow、read 系全部 block) + Read tool も block
+- skill 化 (c): `show-claude-config.sh` (jq walk + 再帰 redact、TOKEN/KEY/SECRET/PASSWORD/PAT/CREDENTIAL 系 key を `[REDACTED]` 置換)
+- memory 化 (d): `secret_paste_target_terminal_vs_chat` を経路 A (user 貼り付け) + 経路 B (AI surfacing) の 2 系統 N=2 に拡張、guardrail と memory の責任分担を明文化
+
+**今日 (2026-05-19) bobrain N=1 セッション総括**:
+- PR #10/#11 = 0.2.0 fresh-install ブロッカー 2 件 fix
+- PR #12/#13 = Show HN ready 状態固定化 + Day 0 dogfooding 開始
+- PR #15 = 差分 index 実装 (Phase 2 #12 完了)
+- PR #16 = `--full-rebuild` escape hatch
+- PR #14 = non-TTY 進捗 feedback fix (open、user force-push 待ち)
+- PR #17 = README cost 表を実測値に補正
+- PR #18 = 0.3.0 release commit
+- 0.1.0 PyPI yank 済
+- secret leak 経路 A (PyPI token、user 貼り付け) + 経路 B (GitHub PAT、AI surfacing) 両方 N=1 + guardrail 完成
+
+**未解決 / punt**:
+- 🔴 PR #14 force-push 待ち (user terminal、`git push --force-with-lease`)
+- 🟡 apptree reindex 完走待ち (現在 39%、ETA 約 45 分)
+- 🟢 0.3.0 PyPI publish (`bash ~/.claude/scripts/bobrain-publish.sh`、PR #14 merge 後)
+- 🟢 Phase 2 #11 案 B (nightly launchd) plist は `~/.claude/disabled-2026-05-19/draft-plists/` に起草済、user review 後 load
+
+**次の 1 タスク**: PR #14 force-push → merge → 0.3.0 PyPI publish (user action)
