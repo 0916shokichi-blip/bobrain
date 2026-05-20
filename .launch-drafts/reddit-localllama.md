@@ -63,7 +63,7 @@ bobrain serve  # Then point your MCP client at it
 
 **Repo**: https://github.com/0916shokichi-blip/bobrain
 **License**: MIT
-**Status**: 0.1.0 on PyPI, early prototype
+**Status**: 0.3.0 on PyPI, early prototype
 
 Solo project. Design and tests are mine; commits are not squashed if you want to read along. Claude Code wrote the implementation under those constraints.
 

@@ -89,6 +89,14 @@
   - **本 dogfooding 期間 (Day 1-7)**: 手動 re-index で習慣化、Day 7 判定で A/B/C を確定
   - **詳細**: log.md `[2026-05-19 18:10]` Day 0 観察
 
+- **#14 Claude memory namespace index 化** (2026-05-20 dogfooding Day 0 発覚、中期):
+  - **発覚**: Phase 1 検索 (`bobrain search "Show HN 投稿の判断"` --ns claude-knowledge / --ns monetize) で 0 件、全 namespace 横断で apptree wiki の bobrain entity「Show HN 投稿の判断ロジック」セクションは surface したが、戦術 source of truth である memory 5 件 (`bobrain_pypi_launch` / `showhn_launch_benchmarks_2026` / `vibe_maintainer_disclosure` / `payment_mor_provider_split` / `platform_compliance_2025_2026`) は `~/.claude/projects/-Users-higashishota/memory/` 配下 = bobrain index 範囲外 = 構造的盲点
+  - **影響**: 「探している答えは、何年か前のあなたが、もう書いている」の射程が wiki + repo まで限定、Claude memory は届かない。user 視点では「ぼぶの過去判断」の core source が範囲外
+  - **検証**: `bobrain index ~/.claude/projects/-Users-higashishota/memory -n claude-memory` で既存設計範囲内、追加 chunks 推定 ~150 (現在 ~85 files、平均数 KB)
+  - **採用条件**: Day 1-7 dogfooding で「memory 範囲外」が頻繁に踏まれる → 採用、Claude 専用 storage 不可侵の境界として尊重 → 見送り
+  - **緊急度**: 中期、Day 1-7 結果次第。Show HN 投稿前は手 (現状 wiki 範囲で動く)
+  - **詳細**: log.md `[2026-05-20 15:30]` dogfooding Day 0 + Phase 1 query 結果
+
 ### ドメインメモ
 
 - 旧名 `mybrain` 系（9 候補）と `mnemo` 系（14 候補）は `mnemo-mcp.com` 以外全 take
