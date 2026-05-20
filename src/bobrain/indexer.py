@@ -227,7 +227,9 @@ def embed_texts(texts: list[str], data_dir: Path | None = None) -> list[list[flo
         unit="ch",
         disable=_progress_disabled(),
         file=sys.stderr,
-        leave=False,
+        leave=True,
+        mininterval=5.0,
+        miniters=1,
     )
     for v in model.passage_embed(texts):
         out.append([float(x) for x in v])
@@ -237,22 +239,39 @@ def embed_texts(texts: list[str], data_dir: Path | None = None) -> list[list[flo
 
 
 def _progress_disabled() -> bool:
-    """Suppress progress bars when not running in a TTY or when explicitly silenced."""
-    if os.environ.get("BOBRAIN_QUIET"):
-        return True
-    return not sys.stderr.isatty()
+    """Progress bars are on by default. Set BOBRAIN_QUIET=1 to silence.
+
+    Earlier versions tied this to ``sys.stderr.isatty()``, which silently
+    suppressed every progress indicator when bobrain was invoked from a
+    non-TTY harness (Claude Code, shell scripts, launchd). That made long
+    embed runs look indistinguishable from a hung process. tqdm itself
+    degrades gracefully in non-TTY environments (line-buffered prints
+    every ``mininterval`` seconds), so we let it run unless the caller
+    explicitly opts out.
+    """
+    quiet = os.environ.get("BOBRAIN_QUIET", "").strip().lower()
+    return quiet in {"1", "true", "yes", "on"}
 
 
 @contextmanager
 def _phase(name: str, n: int | None = None):
-    """Time a phase and print 'phase: 1.2s (N items)' to stderr on exit."""
+    """Time a phase and print 'phase: 1.2s (N items)' to stderr on exit.
+
+    Also announce the phase start so long-running ones (embed, db-write)
+    are visible even when tqdm output is buffered.
+    """
+    if not _progress_disabled():
+        prefix = f"  {name}: starting"
+        if n is not None:
+            prefix += f" ({n} items)"
+        print(f"{prefix}...", file=sys.stderr, flush=True)
     t0 = time.perf_counter()
     try:
         yield
     finally:
         dt = time.perf_counter() - t0
         suffix = f" ({n} items)" if n is not None else ""
-        print(f"  {name}: {dt:.1f}s{suffix}", file=sys.stderr)
+        print(f"  {name}: {dt:.1f}s{suffix}", file=sys.stderr, flush=True)
 
 
 def tokenize(text: str) -> list[str]:
