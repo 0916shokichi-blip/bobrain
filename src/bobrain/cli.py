@@ -6,10 +6,31 @@ from pathlib import Path
 
 import typer
 
+from . import __version__
 from .indexer import build_index
 from .search import search as do_search
 
 app = typer.Typer(help="Bobrain — local multi-source RAG for Claude, Cursor, and friends")
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"bobrain {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        None,
+        "--version",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show version and exit.",
+    ),
+) -> None:
+    """Bobrain — local multi-source RAG for Claude, Cursor, and friends."""
+
 
 DEFAULT_DATA_DIR = (
     Path(os.environ.get("BOBRAIN_DATA", str(Path.home() / ".bobrain")))
