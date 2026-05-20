@@ -64,9 +64,18 @@ uv sync
 | Indexing time | ~3–6 sec/chunk | CPU inference, Apple Silicon (sustained loads slow due to thermal throttling). ~1,000 chunks ≈ 60–90 minutes on the first run; **subsequent runs only re-embed changed chunks** (typically seconds for daily updates) |
 | Disk after indexing | ~50 MB / 1,000 chunks | LanceDB columnar storage under `~/.bobrain/lancedb/` |
 
-Subsequent `bobrain index` runs reuse the cached weights, but currently **re-embed every chunk in the namespace** (full rebuild — incremental hash-based diff is on the roadmap). `bobrain watch` is the only incremental path today.
+Subsequent `bobrain index` runs reuse the cached weights and use a
+content-hash diff to skip unchanged chunks (typically seconds for daily
+updates). Pass `--full-rebuild` to force a clean rebuild if the BM25
+sidecar might be out of sync.
 
 ## Quickstart
+
+The intended path is **MCP client → bobrain → your sources**. Index
+once, then ask your AI client in natural language. The CLI shown at the
+end is for debugging and scripting.
+
+### 1. Index your sources
 
 ```bash
 # index a directory under a namespace
@@ -77,7 +86,24 @@ bobrain index ~/code/my-project -n code
 
 # index multiple roots into one namespace in a single pass
 bobrain index ~/vault ~/code/my-project -n combined
+```
 
+### 2. Connect from your MCP client
+
+Configure Claude Desktop, Cursor, or Claude Code (see
+[MCP client setup](#mcp-client-setup) below for the JSON snippets).
+Once connected, ask in natural language:
+
+> "How did I think about retry/backoff in any past project?"
+
+Your client calls `search_docs` under the hood and folds the matching
+chunks into its reply.
+
+### 3. CLI (debugging / scripting)
+
+The same retrieval is available from the shell:
+
+```bash
 # quick CLI search (BM25 + vector hybrid)
 bobrain search "how did I chunk markdown" -k 5
 

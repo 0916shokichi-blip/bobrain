@@ -1037,3 +1037,27 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - Show HN 投稿は Day 7 判定後
 
 **次の 1 タスク**: Day 1-7 dogfooding 継続、user 主導で daily use signal 蓄積。Show HN 投稿は Day 7 判定後 + memory 盲点採用判定。
+
+
+## [2026-05-20 16:30] dogfooding Day 0 体感 N=1 | vision.md L33「変容の証拠 1」直撃
+
+**経緯**: dogfooding 経路の Claude case 提示 (Phase 0 / 1 CLI 叩き) を user が「普通に "探して" って言えば動く設計じゃないんか」と核心指摘 = 主経路は MCP server 経由の自然言語 query、CLI 直叩きは debug 用、と再確認。
+
+**実証**: 本セッション (Claude Code) で `mcp__bobrain__search_docs` 経由で `query: "やる気が出ない時に過去の自分はどう向き合ってきたか"` を投げた結果、top 2 件で **apptree wiki `思想棚.md` / `log.md`「過去の自分への参照（診断軸として機能）」セクション** が surface:
+
+> 世界を閉じた時はどうだっただろうか。あの時は信じられていただろう、尖りきっていたからね。
+
+= 過去の自分は「やる気」軸じゃなく「**尖りきっていた時 = 自分を信じられていた時**」という別軸で問題を映してた = 「今信じられないのは、十分に尖っていないから」という構造的診断。
+
+**判定**:
+- vision.md L33「変容の証拠 1: 過去の自分が今の悩みに既に答えていた」を **直撃 N=1**
+- hero copy「探している答えは、何年か前のあなたが、もう書いている」体感 N=1
+- 1 query で達成 = bobrain MCP 経路は設計通り機能
+
+**設計洗練 (本セッション PR 化)**:
+- README L67 obsolete 記述 (0.3.0 diff index 未反映) を補正
+- README L69 Quickstart 構造を MCP first → CLI fallback に並び替え
+- CLAUDE.md How to apply に dogfooding 主経路明示 1 行追加
+- LP (docs/index.html) + vision.md は既に MCP first / 変容の証拠軸で整理済 = 修正不要
+
+**次の 1 タスク**: Day 1-7 dogfooding 継続、daily use で memory 範囲外盲点 (Phase 2 #14) と retrieval 体験品質 (Phase 2 #11/#12 残波) を観察、Day 7 判定で Show HN 投稿 GO / Phase 2 fix 優先 / 別 fix を確定

@@ -21,6 +21,7 @@
 
 ## How to apply
 
+- **dogfooding 主経路 = MCP server 起動 + Claude Desktop / Claude Code / Cursor から自然言語 query** (例: 「過去の自分が retry/backoff についてどう考えてた?」)。CLI 直叩き (`bobrain search "..."`) は debug / scripting 用、daily use の主経路じゃない。本セッション (Claude Code) では `mcp__bobrain__search_docs` tool が既に登録済 = 即試せる
 - 開発再開時は `Documents/マネタイズ/log.md` の末尾を読んで最新状態を把握
 - **Phase 1 完了 / Phase 3 #1 + #2 + #3 完了**（LP デプロイ + PyPI 0.1.0 公開済み、2026-04-27）。次は **Phase 3 #3 残タスク: GIF 撮影 + Social Preview 画像 + Show HN/Reddit 投稿** → **Phase 3 #4 決済**（NAWABARI / GMO / Polar.sh、人間アクション含む）
 - LanceDB ≥ 0.30 で `db.list_tables()` は `ListTablesResponse(tables=[...])` wrapper、`.tables` 経由（`_table_exists` ヘルパ済み）
