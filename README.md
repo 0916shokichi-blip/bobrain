@@ -201,3 +201,15 @@ MIT. See [LICENSE](./LICENSE).
 Made by **Bob** — Avatar by Nano Banana Pro.
 
 This is 1 of 8 tools by Bob. → [other tools](https://github.com/0916shokichi-blip)
+
+---
+
+## 🗂 状態: Fold (資産化して畳まれた)
+
+- **fold 日**: 2026-05-20
+- **理由**: target persona (path-forgotten heavy memo user) と作者本人 (path-known user) の zero overlap が dogfooding gate で判明、作者が自分で日常的に使う場面が成立しない
+- **回収された価値**: PyPI publish 10 地雷の運用知見 (memory `bobrain_pypi_launch` 蒸留済) + hybrid BM25+e5+LanceDB 設計パターン (本 repo retain) + Phase 2 #14「Claude memory blind spot」アイデア
+- **再開条件**: 自分が path 忘れる規模のメモ蓄積を持つ生活構造になる、または target persona からの強い使用報告が発生する
+
+これは **敗北ではなく資産化** です。学習・部分コード・アイデアは別の場所に活きています。
+PyPI 0.3.0 と GitHub repo は retain (依存解決経路維持のため archive にしません)。Show HN 投稿は予定なし。

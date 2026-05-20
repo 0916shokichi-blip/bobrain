@@ -1061,3 +1061,39 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - LP (docs/index.html) + vision.md は既に MCP first / 変容の証拠軸で整理済 = 修正不要
 
 **次の 1 タスク**: Day 1-7 dogfooding 継続、daily use で memory 範囲外盲点 (Phase 2 #14) と retrieval 体験品質 (Phase 2 #11/#12 残波) を観察、Day 7 判定で Show HN 投稿 GO / Phase 2 fix 優先 / 別 fix を確定
+
+---
+
+## [2026-05-20 19:00] bobrain fold 判定 (寝かせる候補)
+
+**判定**: dogfooding gate 失敗 → `/fold bobrain` 4 phase 実行 → **寝かせる候補** (retain + README freeze entry、disabled 退避なし)
+
+**Phase 1 4 軸スコア**: 原因=2 / 再開=3 / 維持=3 / 価値=4
+
+**核となる failure mode**:
+- target persona (path-forgotten heavy memo user) と作者本人 (path-known user) の zero overlap
+- Claude reflex N=2 (別セッション 2 件が Read / Bash grep 直叩きで bobrain 未使用)
+- user 発話「使う場面なさすぎ」「ガチで必要なくね」
+- `feedback_build_only_what_i_use` filter で構造不適合確定
+
+**retain する資産**:
+- PyPI 0.3.0 / GitHub repo public (依存解決経路維持)
+- 技術: hybrid BM25+e5+LanceDB + hash-aware diff (src/ 配下)
+- 学習: PyPI publish 10 地雷の運用知見 (memory `bobrain_pypi_launch` 蒸留済)
+- アイデア: Phase 2 #14「Claude memory 5 ファイル blind spot」(CLAUDE.md L91 retain)
+- 起草資産: `.launch-drafts/show-hn-final-v3.md` (永久投稿しないが retain)
+
+**閉じる義務 (consequence)**:
+- Show HN 投稿は永久になし (Day 1-7 dogfooding 中止、gate 失敗確定)
+- README に「🗂 状態: Fold」セクション追記済 (active と誤認させない安全網)
+
+**再開条件 (碇)**:
+- 自分が path 忘れる規模のメモ蓄積を持つ生活構造になる
+- OR target persona から install + 使用報告が発生
+- いずれかが発火するまで本 repo は touch しない (dependabot bug fix を除く)
+
+**fold ledger entry**: `~/.claude/fold-ledger.md` 2026-05-20 セクション
+
+**半年後の再走査**: 2026-11-20 (fold v0.2.0 で /whats-next chain に自動 surface 予定、現状は手動で ledger 確認)
+
+**メタ気づき**: dogfooding Day 0 N=1 で hero copy 体感 (Vision.md L33 直撃 = 過去自分の memo 浮上) は成功した = 技術設計と target persona definition 自体は妥当。失敗したのは「作者本人がその target persona ではない」という構造、`feedback_build_only_what_i_use` を最初に通していれば PyPI publish 前に判明した。次回 OSS 起草時の最上位 filter として強化記録。

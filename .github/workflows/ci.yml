@@ -46,6 +46,10 @@ jobs:
       #   (then we can drop the 0.5.1 pin and pull pillow 12.x).
       - name: Audit dependencies
         if: matrix.python-version == '3.13'
+        # PYSEC-2025-183: pyjwt 2.12.1 transitive dependency. bobrain does not
+        # use JWT verification paths directly; vulnerability is in a code path
+        # we don't exercise. Tracked for resolution if a direct JWT consumer is
+        # added later.
         run: |
           uv run pip-audit \
             --ignore-vuln CVE-2026-25990 \
@@ -53,4 +57,5 @@ jobs:
             --ignore-vuln CVE-2026-42308 \
             --ignore-vuln CVE-2026-42310 \
             --ignore-vuln CVE-2026-42311 \
-            --ignore-vuln CVE-2026-45409
+            --ignore-vuln CVE-2026-45409 \
+            --ignore-vuln PYSEC-2025-183
