@@ -989,3 +989,51 @@ user が Show HN 投稿実施 → KPI 観察結果が出た直後に:
 - 🟢 Phase 2 #11 案 B (nightly launchd) plist は `~/.claude/disabled-2026-05-19/draft-plists/` に起草済、user review 後 load
 
 **次の 1 タスク**: PR #14 force-push → merge → 0.3.0 PyPI publish (user action)
+
+
+## [2026-05-20 15:30] dogfooding Day 0 | Phase 0+1 完走、memory index 範囲盲点発覚
+
+**Phase 0 (fresh install verify)**:
+- `uvx --refresh --from bobrain==0.3.0 bobrain --help`: 70 packages / 123ms / 4 commands surface ✅
+- `bobrain.__version__ = "0.3.0"` (importlib.metadata 経由) ✅
+- 地雷 1 (onnx_data 漏れ) `--help` レベル未発火、Phase 1 search で実検証
+- 軽微 UX: `bobrain --version` flag 未実装 (`python -c "import bobrain..."` 経由必須)、index/search/serve に typer description なし
+
+**Phase 1 (実検索 3 query 軸)**:
+
+1. **「映す世界を間違えた」 --ns apptree -k 5** (core entity 直撃):
+   - 5 件 hit、全 apptree、score 0.03 台で薄い (top 0.0315 〜 [5] 0.0304、差 0.001)
+   - top: log.md「言語化の度合い」(score 0.0315)
+   - core entity 本体 (pages/concepts/映す世界を間違えた.md) は [5] 位 (score 0.0304)
+   - 良い hit: log.md「2026-04-30 discover 本人正本を読み返した気づき」= 過去 discover chunk surface = hero copy「探している答えは、何年か前のあなたが、もう書いている」の体感 N=1
+   - 弱み: [1] [3] [4] が同一 log.md 異 chunk = 多様性弱い、namespace 内同 file 多重 chunk 傾向
+   - 比較: 5/18 memory `wiki_entity_staleness_monitor` 観察「0.016 の薄いヒット」から改善あり (0.030 台)、ただし「関連性高い」感は出ない
+
+2. **「Show HN 投稿の判断」 --ns claude-knowledge -k 5** → **0 件**
+3. **「Show HN 投稿の判断」 --ns monetize -k 5** → **0 件**
+4. **「Show HN」 全 namespace -k 5** → 5 件 hit (全 apptree):
+   - top: bobrain entity「Show HN 投稿の判断ロジック」セクション (score 0.0311)
+   - 戦術 source of truth (memory 5 件) は `~/.claude/projects/-Users-higashishota/memory/` 配下 = **bobrain index 範囲外**
+   - apptree wiki entity に「memory 5 件参照」のメタ言及は出るが、戦術本体は届かない
+
+**核心発見**:
+- bobrain index の射程 = **wiki + repo** まで
+- Claude memory 5 件 (戦術 source of truth) は **構造的盲点**
+- → CLAUDE.md L91 に Phase 2 #14「Claude memory namespace index 化」候補追記、Day 1-7 dogfooding 結果次第で採用判定
+
+**0.3.0 改善体感 (Phase 2 未実施)**:
+- diff index (Phase 2 #12) / non-TTY progress (PR #14) の体感は apptree reindex 走らせる必要 = 30-60 分、本 session 内未実施
+- Day 1-7 期間中に user 主導で 1 回走らせる候補
+
+**未解決 / punt**:
+- 🟡 PR #20 (og 同期) CI green 待ち + user 手動 merge
+- 🟡 GitHub Social Preview upload (user 操作、PR #20 merge 後)
+- 🟢 .launch-drafts/ 3 file patch 未 commit (show-hn-final-v3.md Q12 + og state、reddit-localllama.md status 0.3.0、CLAUDE.md #14、本 log.md = 投稿直前 user review 一括待ち)
+- 🟢 Phase 2 reindex (apptree、30-60 分) Day 1-7 中に user 主導で 1 回
+
+**Show HN 投稿前 gate L120 dogfooding 1 週間 進捗**:
+- Day 0 (本日): signal 3 件蓄積、core query で 1 件「過去の自分」体感 N=1、memory 範囲外盲点 1 件発覚
+- Day 1-7: query bias 評価 + memory 盲点運用判定 + Phase 2 改善体感
+- Show HN 投稿は Day 7 判定後
+
+**次の 1 タスク**: Day 1-7 dogfooding 継続、user 主導で daily use signal 蓄積。Show HN 投稿は Day 7 判定後 + memory 盲点採用判定。
