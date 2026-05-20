@@ -6,6 +6,16 @@ All notable changes to bobrain. Format loosely follows
 schema changes (the LanceDB table auto-migrates when the embedding model
 or vector dim changes).
 
+## Unreleased
+
+### Added
+
+- `bobrain --version` flag. Previously the only way to inspect the
+  installed version was `python -c "import bobrain; print(bobrain.__version__)"`,
+  which is poor UX for a CLI. The flag delegates to
+  `bobrain.__version__` (which itself reads `importlib.metadata.version`),
+  so it stays in sync with `pyproject.toml` automatically.
+
 ## 0.3.0 — 2026-05-19
 
 ### Added
